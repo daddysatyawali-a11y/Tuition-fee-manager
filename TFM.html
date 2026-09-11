@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuition Fee Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ============ Foundations ============ */
+:root{
+  --bg:#080a0d;--surface:#12151a;--surface2:#191d23;--surface3:#222831;
+  --text:#f4f6f8;--muted:#9da6b1;--line:#2a313a;--accent:#7898c7;
+  --accentText:#071018;--good:#6fbd98;--warn:#c8a95d;--danger:#cf737c;
+  --shadow:0 8px 24px rgba(0,0,0,.24);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overscroll-behavior-y:auto}
+body{
+  min-height:100vh;color:var(--text);
+  background:
+    radial-gradient(900px 500px at 8% -8%, rgba(116,88,255,.07), transparent 62%),
+    radial-gradient(800px 500px at 100% 0%, rgba(35,180,190,.055), transparent 60%),
+    linear-gradient(145deg,#07090c 0%,#0a0d11 45%,#080a0e 100%);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hidden{display:none!important}
+a{color:inherit}
+.app{min-height:100vh}
+
+/* ============ Buttons & inputs ============ */
+.btn{border:1px solid var(--line);border-radius:999px;padding:10px 15px;font-weight:700;background:var(--surface2);color:var(--text);min-height:44px;transition:transform .12s ease,background .15s ease,border-color .15s ease}
+.btn:hover{background:var(--surface3)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:var(--accentText);border-color:var(--accent);box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.btn-primary:hover{background:#86a6d4}
+.btn-light{background:var(--surface2);color:var(--text)}
+.btn-danger{background:rgba(255,107,107,.12);color:#ff8b8b;border-color:rgba(255,107,107,.22)}
+.btn-danger:hover{background:rgba(255,107,107,.2)}
+.btn-small{padding:8px 13px;font-size:12px;min-height:38px}
+.btn-block{width:100%}
+input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;outline:none;background:var(--surface2);color:var(--text)}
+input::placeholder,textarea::placeholder{color:#69717b}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:none}
+select option{background:#111418;color:#fff}
+input[type="date"],input[type="month"]{color-scheme:dark;cursor:pointer;min-height:48px}
+input[type="date"]::-webkit-calendar-picker-indicator{opacity:.85;cursor:pointer}
+
+
+html[data-theme="light"]{
+  --bg:#f4f6f8;--surface:#ffffff;--surface2:#f0f2f5;--surface3:#e5e8ed;
+  --text:#161a1f;--muted:#66707c;--line:#d7dce2;--accent:#5579ad;
+  --accentText:#ffffff;--good:#2f8f68;--warn:#a47d27;--danger:#b84d58;
+  --shadow:0 6px 18px rgba(20,30,45,.10);
+}
+html[data-theme="light"] body{background:linear-gradient(145deg,#f7f8fa 0%,#f1f3f6 100%);}
+html[data-theme="light"] .topbar{background:rgba(244,246,248,.88);border-bottom-color:rgba(20,30,45,.08)}
+html[data-theme="light"] input[type="date"],html[data-theme="light"] input[type="month"]{color-scheme:light}
+.theme-toggle{width:42px;height:42px;min-width:42px;border-radius:12px;padding:0;display:grid;place-items:center;font-size:18px;font-weight:800;flex:none;margin-left:auto}
+.page-header-title{min-width:0;flex:1}.page-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}.help-btn{width:42px;height:42px;min-width:42px;border-radius:12px;font-size:20px;font-weight:900}.profile-page-header{align-items:center}.profile-page-header .page-title{margin:0}.profile-page-header .page-subtitle{margin-top:2px}
+.profile-head-actions{display:flex;align-items:center;gap:7px;margin-left:auto;flex:none}
+.icon-btn{width:44px;height:44px;min-width:44px;border-radius:12px;padding:0;display:grid;place-items:center;font-size:19px;font-weight:800}
+.icon-btn-danger{background:rgba(184,77,88,.12);color:#e06b76;border-color:rgba(184,77,88,.24)}
+.profile-settings-card.compact{margin-bottom:14px}
+.profile-settings-card.compact .profile-settings-avatar{width:58px;height:58px}
+
+/* ============ Light-theme contrast fixes ============ */
+html[data-theme="light"] .home-overview{
+  background:linear-gradient(145deg,#ffffff,#f4f6f8);
+  border-color:#d7dce2;
+  box-shadow:0 7px 20px rgba(20,30,45,.10);
+}
+html[data-theme="light"] .class-tabs{border-bottom-color:#dfe3e8}
+html[data-theme="light"] .class-tab{
+  border-color:#d7dce2;background:#eef1f4;color:#4f5965;
+}
+html[data-theme="light"] .class-tab.active{
+  background:#dce6f4;color:#244d80;border-color:#8fa9cf;
+}
+html[data-theme="light"] .fab-transaction{
+  background:#6f95cf;color:#ffffff;border-color:#6f95cf;
+}
+html[data-theme="light"] .fab-add{
+  background:#6f95cf;color:#ffffff;border-color:#6f95cf;
+}
+html[data-theme="light"] .dashboard .stat{
+  background:linear-gradient(145deg,#ffffff,#f0f2f5);
+  border-color:#d7dce2;
+  box-shadow:0 5px 14px rgba(20,30,45,.10);
+}
+html[data-theme="light"] .dashboard .stat:first-child .stat-value{color:#356db7}
+html[data-theme="light"] .dashboard .stat:nth-child(2) .stat-value{color:#20815c}
+html[data-theme="light"] .stat-label{color:#58636f}
+html[data-theme="light"] .profile-stat-value{color:#20262d}
+html[data-theme="light"] .stat-total .profile-stat-value{color:#356db7}
+html[data-theme="light"] .stat-paid .profile-stat-value{color:#20815c}
+html[data-theme="light"] .stat-balance .profile-stat-value{color:#c85f32}
+html[data-theme="light"] .stat-revenue-value{color:#20815c}
+html[data-theme="light"] .progress-card-percent{color:#287a59}
+html[data-theme="light"] .progress-card-meta{color:#4f5965}
+html[data-theme="light"] .progress-track{background:#d9dee5;border-color:#c7cdd5;box-shadow:inset 0 1px 2px rgba(20,30,45,.16)}
+html[data-theme="light"] .progress-fill{background:linear-gradient(90deg,#4f80c0,#2f9369)}
+html[data-theme="light"] .profile-settings-avatar,
+html[data-theme="light"] .profile-avatar,
+html[data-theme="light"] .teacher-profile-btn{background:#e2e6eb;color:#20262d}
+html[data-theme="light"] .profile-settings-card{background:#ffffff}
+html[data-theme="light"] .settings-class.selected{background:#e2e6eb;color:#20262d;border-color:#d2d7dd}
+html[data-theme="light"] .about-app{
+  background:#f0f2f5;
+  border-color:#d7dce2;
+}
+html[data-theme="light"] .report-export-card{
+  background:linear-gradient(145deg,#ffffff,#f0f2f5);
+  border-color:#d7dce2;
+}
+html[data-theme="light"] .reset-code{background:#eef1f4;color:#20262d;border-color:#c7cdd5}
+html[data-theme="light"] .menu-panel,
+html[data-theme="light"] .backup-restore-pill{background:#ffffff}
+
+/* ============ Layout shells ============ */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(8,10,13,.82);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07)}
+.topbar-inner{max-width:1100px;margin:auto;padding:13px 18px;display:flex;align-items:center;gap:12px}
+.brand-block{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.brand{font-size:21px;font-weight:900;line-height:1.1;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-tutor{font-size:11px;color:var(--muted);font-weight:650;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+.teacher-profile-btn{width:46px;height:46px;min-width:46px;border-radius:50%;padding:0;font-size:15px;background:#2a3038;color:#fff;border:1px solid var(--line)}
+.teacher-profile-btn.has-image{overflow:hidden;padding:0;display:grid;place-items:center}
+.teacher-profile-btn img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%;margin:0}
+
+.container{max-width:1100px;margin:auto;padding:18px 18px 90px}
+.page-shell{max-width:1100px;margin:auto;padding:18px 18px 90px}
+
+/* ============ Login / setup ============ */
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login-box{width:min(620px,100%);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:var(--shadow)}
+.login-box h1{margin:0 0 7px;font-size:28px}
+.login-box p{color:var(--muted);margin:0 0 22px}
+.lock-screen{text-align:center}
+.lock-avatar{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:var(--surface3);border:1px solid var(--line);font-size:25px;font-weight:900;overflow:hidden}
+.lock-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.lock-name{font-size:24px;font-weight:900;letter-spacing:-.02em}
+.lock-subtitle{font-size:13px;color:var(--muted);margin:6px 0 22px}
+.lock-button{min-height:54px;font-size:15px}
+.setup-kicker{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.setup-title{font-size:30px;line-height:1.1;margin:7px 0 9px}
+.setup-help{font-size:14px;line-height:1.5;color:var(--muted);margin:0}
+.oneui-class-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 22px}
+.class-choice{position:relative;min-height:70px;border:1px solid var(--line);border-radius:20px;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
+.class-choice input{position:absolute;opacity:0;pointer-events:none}
+.class-choice.selected{background:rgba(120,152,199,.18);color:#dbe7f8;border-color:rgba(120,152,199,.55);box-shadow:none}
+.class-choice .check{position:absolute;right:9px;top:9px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#2b3138;color:transparent;font-size:11px}
+.class-choice.selected .check{background:#090b0e;color:#fff}
+
+/* ============ Home: overview card, tabs, hero, dashboard ============ */
+.home-overview{position:relative;margin:4px 0 14px;padding:10px 12px 12px;border:1px solid rgba(255,255,255,.07);border-radius:26px;
+  background:linear-gradient(145deg,rgba(23,28,36,.98),rgba(13,16,22,.99));
+  box-shadow:0 7px 20px rgba(0,0,0,.20)}
+.class-tabs{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;overflow-x:auto;overflow-y:hidden;padding:2px 1px 10px;margin:0;border-bottom:1px solid rgba(255,255,255,.06);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.class-tabs::-webkit-scrollbar{display:none}
+.class-tab{flex:0 0 auto;min-width:60px;min-height:40px;padding:9px 15px;border-radius:999px;border:1px solid #343b45;background:#171b21;color:#b9c0c9;font-size:13px;font-weight:800}
+.class-tab.active{background:rgba(120,152,199,.20);color:#dbe7f8;border-color:rgba(120,152,199,.55);box-shadow:none}
+.hero-welcome{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:78px;padding:14px 6px 4px}
+.hero-title{font-size:24px;font-weight:900;line-height:1.15}
+.welcome-actions{flex:0 0 auto;display:flex;align-items:center;gap:8px}
+.fab{width:46px;height:46px;min-width:46px;padding:0;border-radius:50%;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.22);-webkit-tap-highlight-color:transparent}
+.fab-add{background:#7898c7;color:#071018;border:1px solid rgba(134,166,212,.7)}
+.fab-add span{font-size:27px;font-weight:500;line-height:1;transform:translateY(-1px)}
+.fab-transaction span{font-size:27px;font-weight:800;line-height:1;transform:translateY(-1px)}
+.fab-more{background:#20262f;color:#c8d7eb;border:1px solid #39414c}
+.fab-more span{font-size:14px;letter-spacing:2px;line-height:1}
+.fab:active{transform:scale(.9)}
+
+.dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px}
+.stat{min-width:0;min-height:86px;border-radius:20px;padding:15px 16px;display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(145deg,#1b2027,#14181e);border:1px solid var(--line);box-shadow:0 5px 14px rgba(0,0,0,.16)}
+.stat:first-child .stat-value{color:#9bbcff}
+.stat:nth-child(2) .stat-value{color:#8bd8b1}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:800}
+.stat-value{font-size:24px;font-weight:900;margin-top:5px;letter-spacing:-.02em}
+
+.toolbar{display:flex;gap:9px;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:120px}
+
+.contact-list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 5px 14px rgba(0,0,0,.14)}
+.contact-row{position:relative;display:flex;align-items:center;gap:12px;min-height:58px;padding:12px 14px 12px 17px;border-bottom:1px solid var(--line);cursor:pointer;overflow:hidden;transition:background .14s ease,transform .12s ease,box-shadow .14s ease}
+.contact-row:last-child{border-bottom:0}
+.contact-row:hover{background:var(--surface2)}
+.contact-row:active{transform:scale(.995)}
+.contact-main{position:relative;z-index:2;min-width:0;flex:1}
+.student-name{font-size:18px;font-weight:820;line-height:1.25;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-vessel{isolation:isolate}
+ .student-vessel-track{position:absolute;z-index:0;inset:0;border:1px solid rgba(255,255,255,.055);border-radius:14px;background:rgba(255,255,255,.009);overflow:hidden;pointer-events:none}
+.student-vessel-fill{height:100%;min-height:100%;border-radius:14px;background:linear-gradient(90deg,rgba(115,167,255,.065),rgba(115,167,255,.15));box-shadow:inset 0 0 12px rgba(115,167,255,.035);transition:width .45s cubic-bezier(.22,1,.36,1)}
+@media(max-width:520px){.contact-row{padding-left:15px}.student-name{font-size:17px}}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:40px 20px;text-align:center;color:var(--muted)}
+
+/* ============ Quick-add sheet (FAB) & More menu — the only popups ============ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:80;display:flex;align-items:flex-end;justify-content:center;padding:0}
+.sheet{background:var(--surface);border:1px solid var(--line);border-top-left-radius:24px;border-top-right-radius:24px;width:min(560px,100%);max-height:85vh;overflow:auto;box-shadow:0 -8px 28px rgba(0,0,0,.34);padding-bottom:env(safe-area-inset-bottom,0)}
+.sheet-grabber{width:40px;height:4px;border-radius:99px;background:var(--line);margin:10px auto 4px}
+.sheet-head{padding:8px 19px 12px;display:flex;align-items:center}
+.sheet-head h2{margin:0;font-size:17px}
+.sheet-close{margin-left:auto;border:0;background:var(--surface3);color:var(--text);border-radius:50%;width:32px;height:32px;font-size:18px}
+.sheet-body{padding:4px 16px 18px}
+.choice-btn{width:100%;min-height:56px;text-align:left;display:block;margin-bottom:9px}
+.choice-btn:last-child{margin-bottom:0}
+.choice-btn b{display:block;font-size:14px;font-weight:800}
+.choice-btn span{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-weight:500}
+
+.menu-panel{position:fixed;right:16px;top:82px;bottom:auto;left:auto;width:min(260px,calc(100vw - 32px));max-height:min(55vh,380px);overflow:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:8px;box-shadow:0 12px 32px rgba(0,0,0,.42);z-index:90;transform-origin:top right;animation:menuPop .14s ease-out}
+@keyframes menuPop{from{opacity:0;transform:scale(.96) translateY(-5px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.menu-title{padding:9px 10px 8px;font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.menu-panel button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;color:var(--text);padding:12px;border-radius:14px;font-weight:700}
+.menu-panel button:hover{background:var(--surface2)}
+.menu-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface3);font-size:14px;flex:none}
+.backup-restore-pill{display:grid;grid-template-columns:1fr 1fr;margin:4px 0 2px;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;background:#171b21}
+.backup-restore-pill button{border:0!important;border-radius:0!important;margin:0!important;background:transparent!important;min-width:0!important;padding:9px 7px!important;font-size:12px!important;gap:6px!important}
+.backup-restore-pill button+button{border-left:1px solid rgba(255,255,255,.1)!important}.backup-restore-pill .menu-icon{width:28px;height:28px;font-size:12px}.backup-restore-pill span:last-child{white-space:nowrap}
+
+/* Compact Manage popup */
+.menu-head{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 2px 0}
+.menu-head .menu-title{padding:8px 8px 8px 10px}
+.menu-close{width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;display:grid!important;place-items:center!important;border:1px solid var(--line)!important;background:var(--surface3)!important;border-radius:50%!important;color:var(--muted)!important;font-size:18px!important;font-weight:500!important}
+.menu-close:hover{color:var(--text)!important;background:var(--surface2)!important}
+
+/* ============ Page header (back + title) ============ */
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.back-btn{width:42px;height:42px;border-radius:50%;padding:0;display:grid;place-items:center;font-size:24px;font-weight:500;flex:none}
+.page-title{font-size:23px;font-weight:850;line-height:1.2}
+.page-subtitle{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* ============ Forms: fields + actions (no more clipping — plain document flow) ============ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700;color:var(--muted)}
+.add-contact-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.info-box{background:var(--surface2);border-radius:13px;padding:13px;margin-bottom:16px;font-size:13px;line-height:1.6}
+
+.form-section{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 5px 14px rgba(0,0,0,.12)}
+.form-section h2{margin:0 0 14px;font-size:15px}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.form-actions .btn{flex:1;min-width:130px}
+.danger-zone{border-color:rgba(255,107,107,.22)}
+.danger-zone h2{color:#ff9a9a}
+.danger-zone p{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.5}
+.danger-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:480px){.danger-actions{grid-template-columns:1fr}}
+
+/* Sticky-but-safe action bar: stays visible while scrolling but is part of the
+   page flow, so it can never clip content beneath a modal's max-height. */
+.page-actions-bar{position:sticky;bottom:0;left:0;right:0;margin:18px -18px -18px;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0));
+  background:linear-gradient(180deg,rgba(8,10,13,0),rgba(8,10,13,.94) 30%);display:flex;gap:10px}
+.page-actions-bar .btn{flex:1}
+
+/* ============ Batch add table ============ */
+.batch-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;max-height:60vh}
+.batch-table{width:100%;border-collapse:separate;border-spacing:0;min-width:820px}
+.batch-table th{position:sticky;top:0;background:#20252c;color:var(--muted);font-size:11px;text-align:left;padding:10px;border-bottom:1px solid var(--line);z-index:1}
+.batch-table td{padding:5px;border-bottom:1px solid var(--line);background:var(--surface)}
+.batch-table tr:last-child td{border-bottom:0}
+.batch-table input,.batch-table select{width:100%;min-width:110px;padding:9px;border-radius:11px}
+.batch-table .row-num{width:34px;min-width:34px;text-align:center;color:var(--muted);font-size:12px}
+.batch-remove{width:38px;min-width:38px;padding:0!important;text-align:center;font-size:20px;line-height:1;color:#ff8b8b}
+.batch-hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+
+/* ============ Profile page ============ */
+.profile-hero{display:flex;align-items:center;gap:16px;padding:4px 0 20px;flex-wrap:wrap}
+.profile-avatar{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;background:#2a3038;font-size:25px;font-weight:850;flex:none}
+.profile-avatar img,.profile-settings-avatar img,.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.profile-photo-preview-overlay{position:fixed;inset:0;z-index:125;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:24px}
+.profile-photo-preview{position:relative;width:min(320px,78vw);aspect-ratio:1;border-radius:50%;overflow:visible;background:var(--surface2);border:2px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.profile-photo-preview img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.profile-photo-preview-close{position:absolute;right:-10px;top:-10px;width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;font-size:20px!important;border:1px solid var(--line)!important;background:var(--surface)!important;color:var(--text)!important}
+.profile-avatar.has-image,.profile-settings-avatar.has-image,.avatar.has-image{background:#20252c;overflow:hidden}
+.about-app{margin-top:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);text-align:center;color:var(--muted);font-size:11px;line-height:1.55}.about-app-title{font-size:14px;font-weight:850;color:var(--text);margin-bottom:5px}.about-app-credit{margin-bottom:10px}.about-app-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font-size:11px;font-weight:800;text-decoration:none;transition:background .12s,border-color .12s}.about-app-link:hover{background:var(--surface2);border-color:#4b5563}.about-app-link:active{transform:scale(.985)}
+.batch-controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.batch-controls .btn{flex:1;min-width:150px}
+
+.profile-identity{min-width:0;flex:1}
+.profile-identity h1{margin:0;font-size:24px}
+.profile-identity p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.profile-actions{display:flex;gap:9px;flex-wrap:wrap;width:100%}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:15px 6px;margin-bottom:16px}
+.profile-stat{text-align:center;padding:4px 6px}
+.profile-stat+.profile-stat{border-left:1px solid var(--line)}
+.profile-stat-value{font-size:19px;font-weight:850}
+.profile-stat-label{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.stat-total .profile-stat-value{color:#73a7ff}
+.stat-paid .profile-stat-value{color:#65d99a}
+.stat-balance .profile-stat-value{color:#ff9b70}
+.stat-revenue-value{color:var(--good)}
+
+.progress-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px 17px;margin-bottom:16px;box-shadow:0 5px 14px rgba(0,0,0,.12)}
+.progress-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.progress-card-title{font-size:13px;font-weight:850}
+.progress-card-percent{font-size:13px;font-weight:900;color:var(--good)}
+.progress-track{height:12px;background:var(--surface3);border-radius:999px;overflow:hidden;border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(0,0,0,.22)}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#73a7ff,#65d99a);border-radius:999px;transition:width .25s ease}
+.progress-card-meta{display:flex;justify-content:space-between;gap:12px;margin-top:9px;color:var(--muted);font-size:11px;font-weight:650}
+
+.profile-section{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 5px 14px rgba(0,0,0,.12)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.section-head h2{margin:0;font-size:15px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-item{background:var(--surface2);border-radius:14px;padding:11px 12px}
+.detail-item.full{grid-column:1/-1}
+.detail-label{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:750}
+.detail-value{font-size:14px;margin-top:4px;word-break:break-word}
+
+/* ============ Transactions ============ */
+.tx-list{display:flex;flex-direction:column;gap:9px}
+.upi-tx{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:13px}
+.tx-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(100,217,154,.12);color:var(--good);font-weight:900;flex:none}
+.upi-main{min-width:0;flex:1}
+.upi-name{font-weight:800;font-size:14px}
+.upi-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.upi-amount{font-weight:850;color:var(--good);white-space:nowrap;font-size:14px}
+.upi-actions{display:flex;align-items:center;gap:7px}
+
+/* ============ Receipt ============ */
+.receipt{background:#fff;color:#111;padding:24px;border-radius:18px;max-width:430px;margin:auto}
+.receipt h2{margin:0 0 5px}
+.receipt-muted{color:#666;font-size:12px}
+.receipt-line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #ddd}
+.receipt-total{font-size:18px;font-weight:850}
+.receipt-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.receipt-actions .btn{flex:1;min-width:130px}
+
+/* ============ Settings / profile page ============ */
+.profile-settings-card{display:flex;align-items:center;gap:15px;background:var(--surface2);border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:16px}
+.profile-settings-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#2a3038;font-size:22px;font-weight:850;flex:none}
+.settings-class-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.settings-class{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:15px;padding:10px;text-align:center;font-weight:750}
+.settings-class.selected{background:#f5f6f7;color:#090b0e;border-color:#f5f6f7}
+
+.reset-card{margin-top:14px;border:1px solid rgba(255,107,107,.22);border-radius:20px;padding:16px;background:linear-gradient(145deg,rgba(70,25,30,.24),rgba(25,18,22,.55))}
+.reset-card h2{margin:0 0 5px;font-size:16px;color:#ff9a9a}
+.reset-card p{margin:0 0 13px;font-size:12px;color:var(--muted);line-height:1.5}
+.reset-code{margin:10px 0 12px;padding:14px;border-radius:16px;background:#0e1115;border:1px dashed rgba(255,255,255,.2);text-align:center;font-size:19px;font-weight:900;letter-spacing:.06em;user-select:none}
+.reset-input{text-align:center}
+.reset-error{display:none;margin-top:8px;color:#ff8b8b;font-size:12px;font-weight:700}
+.reset-error.show{display:block}
+
+/* ============ Report export card ============ */
+.report-export-card{margin:0 0 14px;padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,#191e26,#13171d)}
+.report-export-title{font-size:13px;font-weight:850;margin-bottom:10px}
+.report-export-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.report-export-grid label{display:grid;gap:6px;color:var(--muted);font-size:10px;font-weight:800}
+
+/* ============ Select-list pages ============ */
+.select-list{display:grid;gap:9px}
+.select-item{width:100%;min-height:56px;text-align:left;display:flex;flex-direction:column;justify-content:center}
+.select-item b{font-size:14px}
+.select-item span{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-weight:500}
+
+/* ============ Responsive ============ */
+@media(max-width:650px){
+  .container,.page-shell{padding:14px 12px 90px}
+  .topbar-inner{padding:11px 14px}
+  .brand{font-size:19px}
+  .oneui-class-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .class-choice{min-height:64px;border-radius:18px}
+  .form-grid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .detail-grid{grid-template-columns:1fr}
+  .toolbar{flex-wrap:wrap}
+  .batch-table{grid-template-columns:1fr}
+  .profile-avatar{width:70px;height:70px;font-size:21px}
+  .profile-identity h1{font-size:21px}
+  .profile-stats{padding:12px 3px}
+  .profile-stat-value{font-size:16px}
+  .profile-stat-label{font-size:9px}
+  .settings-class-grid{grid-template-columns:repeat(3,1fr)}
+  .menu-panel{right:12px;top:76px;width:min(260px,calc(100vw - 24px));max-height:55vh}
+  .report-export-grid{grid-template-columns:1fr 1fr}
+  .form-actions .btn{min-width:100%}
+}
+</style>
+
+<style id="app-motion-system">
+:root{
+  --motion-fast:150ms;
+  --motion-normal:220ms;
+  --motion-slow:360ms;
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* Smooth state changes */
+*{
+  -webkit-tap-highlight-color:transparent;
+}
+button,
+input,
+select,
+textarea,
+.card,
+.student-row,
+.student-list-item,
+.student-card,
+.class-tab,
+.action-card,
+.stat-card,
+.profile-card,
+.menu-item,
+.list-item,
+.transaction-item,
+.progress-card{
+  transition:
+    transform var(--motion-normal) var(--motion-ease),
+    opacity var(--motion-normal) ease,
+    background-color var(--motion-normal) ease,
+    border-color var(--motion-normal) ease,
+    box-shadow var(--motion-normal) ease,
+    color var(--motion-normal) ease;
+}
+
+/* Press feedback */
+button:not(:disabled):active{
+  transform:scale(.97);
+}
+.student-row:active,
+.student-list-item:active,
+.student-card:active,
+.menu-item:active,
+.list-item:active{
+  transform:scale(.985);
+}
+
+/* Interactive hover/focus states where supported */
+@media (hover:hover){
+  button:not(:disabled):hover{
+    transform:translateY(-1px);
+  }
+  .student-row:hover,
+  .student-list-item:hover,
+  .student-card:hover,
+  .card:hover,
+  .action-card:hover{
+    transform:translateY(-1px);
+  }
+}
+
+/* Page content entrance */
+#app > *{
+  animation:appPageIn var(--motion-slow) var(--motion-ease) both;
+}
+@keyframes appPageIn{
+  from{opacity:0;transform:translateY(8px) scale(.992)}
+  to{opacity:1;transform:none}
+}
+
+/* List items appear with a subtle stagger */
+.student-row,
+.student-list-item,
+.student-card,
+.transaction-item,
+.list-item{
+  animation:appItemIn 280ms var(--motion-ease) both;
+}
+@keyframes appItemIn{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:none}
+}
+
+/* Progress fill animates when rendered */
+.student-vessel-fill{
+  animation:progressFillIn 520ms var(--motion-ease) both;
+  transform-origin:left center;
+}
+@keyframes progressFillIn{
+  from{opacity:0;transform:scaleX(.72)}
+  to{opacity:1;transform:scaleX(1)}
+}
+
+/* Modal / popup surfaces */
+.modal,
+.modal-content,
+.dialog,
+.popup,
+.sheet,
+.bottom-sheet{
+  animation:appPopupIn 260ms var(--motion-ease) both;
+}
+@keyframes appPopupIn{
+  from{opacity:0;transform:translateY(12px) scale(.975)}
+  to{opacity:1;transform:none}
+}
+
+/* Toast-style notices */
+.toast,
+.toast-message,
+.snackbar{
+  animation:appToastIn 240ms var(--motion-ease) both;
+}
+@keyframes appToastIn{
+  from{opacity:0;transform:translateY(10px) scale(.97)}
+  to{opacity:1;transform:none}
+}
+
+/* Respect accessibility preferences */
+@media (prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:1ms !important;
+    animation-iteration-count:1 !important;
+    scroll-behavior:auto !important;
+    transition-duration:1ms !important;
+  }
+}
+</style>
+
+</head>
+<body>
+
+<div id="loginScreen" class="login hidden"></div>
+
+<div id="setupScreen" class="login hidden">
+  <div class="login-box">
+    <div class="setup-kicker">WELCOME</div>
+    <div class="setup-title">Let's set up your tuition</div>
+    <p class="setup-help">First tell us who you are and your academic session. Then choose the classes you teach.</p>
+    <div class="field" style="margin:20px 0 12px">
+      <label>Tutor Name *</label>
+      <input id="teacherSetupInput" placeholder="Enter tutor name" autocomplete="name" required>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Institute / Tuition Name *</label>
+      <input id="instituteSetupInput" placeholder="e.g. Mukul's Physics Academy" autocomplete="organization" required>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Teacher Gender *</label>
+      <select id="teacherGenderInput" required>
+        <option value="">Select gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Academic Session</label>
+      <div class="form-grid">
+        <div class="field"><label>Starts</label><input id="sessionStartInput" type="month" value="2026-04"></div>
+        <div class="field"><label>Ends</label><input id="sessionEndInput" type="month" value="2027-03"></div>
+      </div>
+    </div>
+    <div style="font-size:15px;font-weight:850;margin-bottom:6px">Choose Classes</div>
+    <div id="selectedClassCount" style="font-size:12px;color:var(--muted);margin-bottom:10px">0 classes selected</div>
+    <div id="classPicker" class="oneui-class-grid"></div>
+    <button class="btn btn-primary btn-block" style="min-height:50px;margin-top:4px" onclick="finishSetup()">Continue</button>
+    <div style="text-align:center;margin:14px 0 8px;color:var(--muted);font-size:12px">Already have a backup?</div>
+    <button type="button" class="btn btn-light btn-block" style="min-height:46px" onclick="document.getElementById('firstLaunchImport').click()">Import Backup Instead</button>
+    <input id="firstLaunchImport" type="file" accept=".json" class="hidden" onchange="importData(event)">
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-block">
+        <div class="brand" id="appBrand">My Tuition</div>
+        <div class="brand-tutor" id="appTutor"></div>
+      </div>
+      <div class="spacer"></div>
+      <button id="teacherAvatar" class="btn teacher-profile-btn" onclick="showUserProfilePage()" aria-label="Teacher profile">MS</button>
+    </div>
+  </header>
+
+  <main id="homeView" class="container">
+    <section class="home-overview">
+      <div id="classTabs" class="class-tabs"></div>
+      <section id="welcomeHero" class="hero-welcome">
+        <div class="welcome-content">
+          <div id="welcomeTitle" class="hero-title">Good morning, Sir</div>
+        </div>
+        <div class="welcome-actions" aria-label="Quick actions">
+          <button type="button" class="fab fab-add fab-transaction" onclick="showAllTransactionsPage();event.stopPropagation()" aria-label="All Transactions" title="All Transactions"><span>₹</span></button>
+          <button type="button" class="fab fab-add" onclick="openQuickAddSheet()" aria-label="Add"><span>+</span></button>
+        </div>
+      </section>
+    </section>
+
+    <section id="dashboard" class="dashboard"></section>
+
+    <div class="toolbar">
+      <input id="search" class="search" placeholder="Search student or father's name…" oninput="renderStudents()">
+      <input id="importFile" type="file" accept=".json" class="hidden" onchange="importData(event)">
+    </div>
+    <div id="students" class="students"></div>
+  </main>
+
+  <main id="pageView" class="page-shell hidden"></main>
+</div>
+
+<div id="sheetOverlay" class="overlay hidden" onclick="closeOnBackdrop(event)">
+  <div id="sheet" class="sheet"></div>
+</div>
+
+<script>
+/* ---------- small utilities ---------- */
+function haptic(){try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}}
+function openNativeDatePicker(el){try{if(el && typeof el.showPicker==="function") el.showPicker();}catch(e){}}
+document.addEventListener("focusin",e=>{const el=e.target;if(el && el.matches && el.matches('input[type="date"]')) openNativeDatePicker(el);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
+
+const KEY = "tuition_fee_manager_v2";
+const CLASS_LABELS = ["Nursery","LKG","UKG","1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th","11th","12th"];
+
+let state = JSON.parse(localStorage.getItem(KEY) || "null") || {
+  teacher:"", brand:"My Tuition", gender:"", theme:"dark", setupDone:false, loggedOut:false, classes:[], activeClass:"",
+  session:"April 2026 – March 2027", students:[]
+};
+
+/* Fills in defaults and migrates legacy shapes. Runs at load AND after Restore,
+   so an imported backup can never leave the app in a half-normalized state. */
+function normalizeState(){
+  if(!state.students||!Array.isArray(state.students))state.students=[];
+  if(!state.classes||!Array.isArray(state.classes))state.classes=[];
+  if(!state.leftStudentTransactions||!Array.isArray(state.leftStudentTransactions))state.leftStudentTransactions=[];
+  if(!state.gender)state.gender="male";
+  if(!state.brand)state.brand="My Tuition";
+  if(typeof state.teacherPhoto!=="string")state.teacherPhoto="";
+  if(typeof state.loggedOut!=="boolean")state.loggedOut=false;
+  if(state.theme!=="light"&&state.theme!=="dark")state.theme="dark";
+  if(!state.sessionStart){
+    const sm=String(state.session||"").match(/([A-Z][a-z]+) (20\d{2})/);
+    const em=String(state.session||"").match(/([A-Z][a-z]+) (20\d{2})$/);
+    state.sessionStart=sm?`${sm[2]}-${String(new Date(Date.parse(sm[1]+" 1, 2000")).getMonth()+1).padStart(2,"0")}`:"2026-04";
+    state.sessionEnd=em?`${em[2]}-${String(new Date(Date.parse(em[1]+" 1, 2000")).getMonth()+1).padStart(2,"0")}`:"2027-03";
+  }
+  state.students.forEach(s=>{
+    if(!Array.isArray(s.transactions))s.transactions=[];
+    if(!Array.isArray(s.contacts))s.contacts=s.contacts?[s.contacts]:[""];
+    if(typeof s.photo!=="string")s.photo="";
+  });
+}
+normalizeState();
+
+function monthKey(dateValue=new Date()){
+  const d=typeof dateValue==="string" ? new Date(dateValue.includes("T")?dateValue:dateValue+"T00:00:00") : dateValue;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function monthLabel(key){
+  const [y,m]=String(key).split("-").map(Number);
+  if(!y||!m)return key;
+  return new Date(y,m-1,1).toLocaleDateString("en-IN",{month:"long",year:"numeric"});
+}
+function currentMonthKey(){return monthKey(new Date());}
+
+function activeStudentsForClass(cls=state.activeClass){
+  return state.students.filter(s=>(cls==="All" || s.class===cls)&&!s.leftDate);
+}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN");}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function initials(name){return (name||"?").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmtDate(v){if(!v)return "—";return new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}
+
+function handlePhotoInput(event,previewId){
+  const file=event.target.files?.[0];if(!file)return;
+  if(!file.type.startsWith("image/")){event.target.value="";return alert("Please choose an image file.");}
+  if(file.size>10*1024*1024){event.target.value="";return alert("Please choose an image smaller than 10 MB.");}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const data=String(reader.result||"");
+    const preview=document.getElementById(previewId);
+    if(preview){preview.classList.add("has-image");preview.innerHTML=`<img src="${esc(data)}" alt="">`;}
+    const hidden=document.getElementById(previewId==="teacherPhotoPreview"?"teacherPhotoValue":"studentPhotoValue");
+    if(hidden)hidden.value=data;
+  };
+  reader.readAsDataURL(file);
+  event.target.value="";
+}
+function clearPhoto(previewId){
+  const preview=document.getElementById(previewId);if(!preview)return;
+  preview.classList.remove("has-image");
+  preview.textContent=previewId==="teacherPhotoPreview"?initials(state.teacher):initials(document.querySelector('input[name="name"]')?.value||"Student");
+  const hidden=document.getElementById(previewId==="teacherPhotoPreview"?"teacherPhotoValue":"studentPhotoValue");
+  if(hidden)hidden.value="";
+}
+function totalFeesForProgress(s){return Number(s.totalFees||0);}
+function progressRowsForStudent(s){
+  return [...(s.transactions||[])].sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+}
+function canvasCssVar(name,fallback){
+  const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v||fallback;
+}
+function roundRectPath(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function fillRoundRect(ctx,x,y,w,h,r,fill){
+  roundRectPath(ctx,x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();
+}
+function strokeRoundRect(ctx,x,y,w,h,r,stroke){
+  roundRectPath(ctx,x,y,w,h,r);ctx.strokeStyle=stroke;ctx.stroke();
+}
+async function progressCanvas(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return null;
+  const tx=progressRowsForStudent(s),paid=paidFor(s),balance=Math.max(0,totalFeesForProgress(s)-paid);
+  const bg=canvasCssVar("--bg","#080a0d"),surface=canvasCssVar("--surface","#12151a"),surface2=canvasCssVar("--surface2","#191d23");
+  const text=canvasCssVar("--text","#f7f7f8"),muted=canvasCssVar("--muted","#a2a9b2"),line=canvasCssVar("--line","#2b3139");
+  const totalColor="#73a7ff",paidColor="#65d99a",balanceColor="#ff9b70";
+  const c=document.createElement("canvas"),ctx=c.getContext("2d");
+  const rowH=62,headerH=330,footerH=38,pad=55;
+  c.width=1100;c.height=Math.max(760,headerH+tx.length*rowH+footerH);
+
+  // Use the app's live CSS palette so the shared statement follows the UI theme.
+  ctx.fillStyle=bg;ctx.fillRect(0,0,c.width,c.height);
+  fillRoundRect(ctx,28,28,c.width-56,c.height-56,28,surface);
+
+  ctx.fillStyle=text;ctx.font="800 38px Arial";ctx.fillText("Fee Progress Statement",pad,82);
+  ctx.fillStyle=muted;ctx.font="19px Arial";ctx.fillText(String(state.brand||"Tuition Fee Manager"),pad,115);
+
+  ctx.fillStyle=text;ctx.font="800 27px Arial";ctx.fillText("Student: "+String(s.name||"—"),pad,166);
+  ctx.fillStyle=muted;ctx.font="18px Arial";ctx.fillText("Class: "+String(s.class||"—")+"  •  Joined: "+fmtDate(s.addedDate),pad,198);
+
+  // Summary cards use the same palette as the in-app Total / Paid / Balance cards.
+  const cardY=226,cardH=92,cardGap=18,cardW=(c.width-pad*2-cardGap*2)/3;
+  const cards=[
+    {x:pad,label:"TOTAL FEES",value:money(s.totalFees),color:totalColor},
+    {x:pad+cardW+cardGap,label:"FEES PAID",value:money(paid),color:paidColor},
+    {x:pad+(cardW+cardGap)*2,label:"BALANCE",value:money(balance),color:balanceColor}
+  ];
+  cards.forEach(card=>{
+    fillRoundRect(ctx,card.x,cardY,cardW,cardH,18,surface2);
+    ctx.fillStyle=card.color;ctx.fillRect(card.x,cardY,5,cardH);
+    ctx.fillStyle=muted;ctx.font="700 13px Arial";ctx.fillText(card.label,card.x+20,cardY+28);
+    ctx.fillStyle=card.color;ctx.font="800 27px Arial";ctx.fillText(card.value,card.x+20,cardY+66);
+  });
+
+  // The progress bar is intentionally app-only. Shared statements contain the
+  // financial summary and payment history, but no visual progress indicator.
+  let y=350;
+  ctx.fillStyle=muted;ctx.font="700 15px Arial";
+  ctx.fillText("DATE",pad,y);ctx.fillText("PAYMENT",390,y);ctx.fillText("REMARKS",600,y);
+  ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,y+18);ctx.lineTo(c.width-pad,y+18);ctx.stroke();
+  y+=48;
+
+  tx.forEach(t=>{
+    ctx.fillStyle=text;ctx.font="17px Arial";ctx.fillText(fmtDate(String(t.date||"").slice(0,10)),pad,y);
+    ctx.fillStyle=paidColor;ctx.font="800 17px Arial";ctx.fillText(money(t.amount),390,y);
+    ctx.fillStyle=muted;ctx.font="17px Arial";ctx.fillText(String(t.remark||"—").slice(0,48),600,y);
+    ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(pad,y+22);ctx.lineTo(c.width-pad,y+22);ctx.stroke();
+    y+=rowH;
+  });
+
+  return await new Promise(res=>c.toBlob(res,"image/png"));
+}
+async function shareProgress(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  const blob=await progressCanvas(studentId);if(!blob)return;
+  const file=new File([blob],`fee-progress-${s.name.replace(/[^a-z0-9]+/gi,"-")}.png`,{type:"image/png"});
+  // Share only the image. No caption/text is supplied, so apps such as WhatsApp
+  // receive the statement as an image without an automatically generated message.
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{await navigator.share({files:[file]});haptic();return;}catch(e){}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=file.name;a.click();URL.revokeObjectURL(url);
+  alert("Direct sharing is not supported here, so the statement image was saved instead.");
+}
+
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme",state.theme||"dark");
+}
+function toggleTheme(){
+  state.theme=(state.theme||"dark")==="dark"?"light":"dark";
+  save();applyTheme();
+  const b=document.getElementById("themeToggle");
+  if(b){b.textContent=state.theme==="dark"?"☀":"☾";b.setAttribute("aria-label",state.theme==="dark"?"Switch to light mode":"Switch to dark mode");}
+}
+
+/* ---------- boot ---------- */
+function init(){
+  applyTheme();
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("app").classList.add("hidden");
+  if(!state.setupDone || !state.classes.length){showSetup();return}
+   if(!state.activeClass || (state.activeClass!=="All" && !state.classes.includes(state.activeClass)))state.activeClass="All";
+  if(state.loggedOut){showLoginScreen();return;}
+  document.getElementById("app").classList.remove("hidden");
+  const avatar=document.getElementById("teacherAvatar");
+  if(avatar){avatar.classList.toggle("has-image",!!state.teacherPhoto);avatar.innerHTML=state.teacherPhoto?`<img src="${esc(state.teacherPhoto)}" alt="">`:esc(initials(state.teacher));}
+  document.getElementById("appBrand").textContent=state.brand||"My Tuition";
+  document.getElementById("appTutor").textContent=state.teacher||"";
+  showHomePage();
+}
+function showLoginScreen(){
+  const el=document.getElementById("loginScreen");
+  const photo=state.teacherPhoto||"";
+  el.innerHTML=`
+    <div class="login-box lock-screen">
+      <div class="lock-avatar ${photo?"has-image":""}">${photo?`<img src="${esc(photo)}" alt="">`:esc(initials(state.teacher))}</div>
+      <div class="lock-name">${esc(state.teacher||"Tutor")}</div>
+      <div class="lock-subtitle">${esc(state.brand||"My Tuition")}</div>
+      <button type="button" class="btn btn-primary btn-block lock-button" onclick="unlockApp()">Tap to unlock</button>
+    </div>`;
+  el.classList.remove("hidden");
+}
+function unlockApp(){
+  state.loggedOut=false;
+  save();
+  init();
+}
+function logoutApp(){
+  if(!confirm("Log out of Tuition Fee Manager?"))return;
+  state.loggedOut=true;
+  save();
+  init();
+}
+
+function showSetup(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("setupScreen").classList.remove("hidden");
+  renderClassPicker();
+}
+function renderClassPicker(){
+  const chosen=new Set(state.classes);
+  document.getElementById("classPicker").innerHTML=CLASS_LABELS.map((c,i)=>`
+    <label class="class-choice ${chosen.has(c)?"selected":""}" data-class-choice="${i}">
+      <input type="checkbox" value="${esc(c)}" ${chosen.has(c)?"checked":""}>
+      <span>${esc(c)}</span><span class="check">✓</span>
+    </label>`).join("");
+  updateSetupClassCount();
+  document.querySelectorAll("#classPicker .class-choice").forEach(label=>{
+    const input=label.querySelector("input");
+    label.addEventListener("click",e=>{
+      if(e.target===input)e.preventDefault();
+      input.checked=!input.checked;
+      label.classList.toggle("selected",input.checked);
+      updateSetupClassCount();
+    });
+  });
+  document.getElementById("sessionStartInput").value=state.sessionStart||"2026-04";
+  document.getElementById("sessionEndInput").value=state.sessionEnd||"2027-03";
+  const ti=document.getElementById("teacherSetupInput"); if(ti)ti.value=state.teacher||"";
+  const ii=document.getElementById("instituteSetupInput"); if(ii)ii.value=state.brand||"";
+  const gi=document.getElementById("teacherGenderInput"); if(gi)gi.value=state.gender||"";
+}
+function updateSetupClassCount(){
+  const count=document.querySelectorAll("#classPicker input:checked").length;
+  const el=document.getElementById("selectedClassCount");
+  if(el)el.textContent=`${count} class${count===1?"":"es"} selected`;
+}
+function finishSetup(){
+  const selected=[...document.querySelectorAll("#classPicker input:checked")].map(x=>x.value);
+  if(!selected.length)return alert("Select at least one class.");
+  const setupName=(document.getElementById("teacherSetupInput")?.value||"").trim();
+  const instituteName=(document.getElementById("instituteSetupInput")?.value||"").trim();
+  const gender=(document.getElementById("teacherGenderInput")?.value||"").trim();
+  if(setupName)state.teacher=setupName;
+  if(!state.teacher)return alert("Enter the tutor name.");
+  if(!instituteName)return alert("Enter the institute / tuition name.");
+  if(!gender)return alert("Select the teacher gender.");
+  state.brand=instituteName;
+  state.gender=gender;
+  state.classes=selected;
+  state.activeClass="All";
+  const sessionStart=document.getElementById("sessionStartInput").value||"2026-04";
+  const sessionEnd=document.getElementById("sessionEndInput").value||"2027-03";
+  if(sessionStart>sessionEnd)return alert("Academic session start cannot be after the end month.");
+  state.sessionStart=sessionStart; state.sessionEnd=sessionEnd;
+  state.session=`${monthLabel(sessionStart)} – ${monthLabel(sessionEnd)}`;
+  state.setupDone=true;save();init();
+}
+
+/* ---------- home rendering ---------- */
+function getGreeting(){
+  const h=new Date().getHours();
+  if(h<5)return "Good night";
+  if(h<12)return "Good morning";
+  if(h<17)return "Good afternoon";
+  if(h<21)return "Good evening";
+  return "Good night";
+}
+function updateWelcome(){
+  const title=document.getElementById("welcomeTitle");
+  if(!title)return;
+  const salutation=state.gender==="female"?"Ma'am":"Sir";
+  title.textContent=`${getGreeting()}, ${salutation}`;
+}
+function render(){
+  renderClassTabs();
+  renderDashboard();
+  renderStudents();
+  updateWelcome();
+}
+function renderClassTabs(){
+  const el=document.getElementById("classTabs");
+  if(!el)return;
+  const classes=["All",...(Array.isArray(state.classes)?state.classes:[])];
+  el.innerHTML=classes.map((c,i)=>`<button type="button" class="class-tab ${c===state.activeClass?"active":""}" data-class-index="${i}"><span>${esc(c)}</span></button>`).join("");
+  el.querySelectorAll(".class-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const c=classes[Number(btn.dataset.classIndex)];
+      if(c)selectClass(c);
+    });
+  });
+}
+function selectClass(c){state.activeClass=c;save();render();}
+function studentsForClass(){return state.students.filter(s=>(state.activeClass==="All" || s.class===state.activeClass)&&!s.leftDate);}
+function paidFor(s){return (s.transactions||[]).reduce((a,t)=>a+Number(t.amount||0),0);}
+function renderDashboard(){
+  const ss=studentsForClass();
+  const key=currentMonthKey();
+  const [yy,mm]=key.split("-").map(Number);
+  const monthStart=key+"-01";
+  const monthEnd=new Date(Date.UTC(yy,mm,0)).toISOString().slice(0,10);
+  const monthStudents=ss.filter(s=>{
+    const added=String(s.addedDate||"9999-12-31").slice(0,10);
+    const left=String(s.leftDate||"9999-12-31").slice(0,10);
+    return added<=monthEnd && left>=monthStart;
+  });
+  const monthlyPaid=ss.reduce((sum,s)=>
+    sum+(s.transactions||[]).reduce((a,t)=>{
+      const d=String(t.date||"").slice(0,10);
+      return a+(d.startsWith(key+"-")?Number(t.amount||0):0);
+    },0),0);
+  const monthLabelText=new Date(Date.UTC(yy,mm-1,1)).toLocaleDateString("en-IN",{month:"short",year:"numeric",timeZone:"UTC"});
+  document.getElementById("dashboard").innerHTML=`
+   <div class="stat"><div class="stat-label">Class Strength · ${monthLabelText}</div><div class="stat-value">${monthStudents.length}</div></div>
+   <div class="stat"><div class="stat-label">Fees Collected · ${monthLabelText}</div><div class="stat-value">${money(monthlyPaid)}</div></div>`;
+}
+function renderStudents(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const ss=studentsForClass().filter(s=>(s.name+" "+(s.father||"")+" "+(s.mother||"")).toLowerCase().includes(q))
+    .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"en-IN",{sensitivity:"base",numeric:true}));
+  const el=document.getElementById("students");
+  if(!ss.length){
+    el.innerHTML=`<div class="empty">${q?"No matching students.":state.activeClass==="All"?"No students yet. Tap the + button to add one.":"No students in "+esc(state.activeClass)+" yet. Tap the + button to add one."}</div>`;
+    return;
+  }
+  el.innerHTML=`<div class="contact-list">${ss.map(s=>{
+    const total=Math.max(0,Number(s.totalFees||0));
+    const paid=Math.max(0,paidFor(s));
+    const progress=total>0?Math.min(100,(paid/total)*100):0;
+    return `
+    <div class="contact-row student-vessel" onclick="showProfilePage('${s.id}')" role="button" tabindex="0" aria-label="Open ${esc(s.name)} profile">
+      <div class="student-vessel-track" aria-hidden="true"><div class="student-vessel-fill" style="width:${progress.toFixed(2)}%"></div></div>
+      <div class="contact-main">
+        <div class="student-name">${esc(s.name)}</div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- page navigation ---------- */
+// Every in-app page keeps the exact page it came from. The Back button therefore
+// behaves universally instead of assuming that every page was opened from Home.
+let pageHistory=[];
+function showHomePage(){
+  pageHistory=[];
+  document.getElementById("pageView").classList.add("hidden");
+  document.getElementById("homeView").classList.remove("hidden");
+  const avatar=document.getElementById("teacherAvatar");
+  avatar.classList.toggle("has-image",!!state.teacherPhoto);
+  avatar.innerHTML=state.teacherPhoto?`<img src="${esc(state.teacherPhoto)}" alt="">`:esc(initials(state.teacher));
+  avatar.setAttribute("aria-label","Open profile");
+  avatar.onclick=showUserProfilePage;
+  render();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function configurePageAvatar(){
+  const avatar=document.getElementById("teacherAvatar");
+  if(!avatar)return;
+  avatar.textContent="‹";
+  avatar.setAttribute("aria-label","Go back");
+  avatar.onclick=goBack;
+}
+function showPage(htmlContent){
+  const p=document.getElementById("pageView");
+  if(!p.classList.contains("hidden") && p.innerHTML.trim()) pageHistory.push(p.innerHTML);
+  document.getElementById("homeView").classList.add("hidden");
+  p.classList.remove("hidden");
+  p.innerHTML=htmlContent;
+  configurePageAvatar();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function restorePage(htmlContent){
+  const p=document.getElementById("pageView");
+  document.getElementById("homeView").classList.add("hidden");
+  p.classList.remove("hidden");
+  p.innerHTML=htmlContent;
+  configurePageAvatar();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function goBack(){
+  if(pageHistory.length){
+    restorePage(pageHistory.pop());
+  }else{
+    showHomePage();
+  }
+}
+function backToHome(){showHomePage();}
+/* Refreshes whichever screen makes sense after a student is edited/saved,
+   instead of always snapping back to Home underneath a page the user was on. */
+function refreshCurrentView(studentId){
+  if(studentId && state.students.some(x=>x.id===studentId)){
+    showProfilePage(studentId);
+  }else{
+    showHomePage();
+  }
+}
+
+/* ---------- quick-add sheet (the ONLY popup left — max 4 options) ---------- */
+function openSheet(title,body){
+  document.getElementById("sheet").innerHTML=`<div class="sheet-grabber"></div><div class="sheet-head"><h2>${title}</h2><button class="sheet-close" onclick="closeSheet()">×</button></div><div class="sheet-body">${body}</div>`;
+  document.getElementById("sheetOverlay").classList.remove("hidden");
+}
+function closeSheet(){document.getElementById("sheetOverlay").classList.add("hidden");}
+function closeOnBackdrop(e){if(e.target.id==="sheetOverlay")closeSheet();}
+function openQuickAddSheet(){
+  const options=[
+    {label:"+ Add Student",help:"Enter one student's details.",action:"closeSheet();showStudentFormPage()"},
+    {label:"Batch Add Students",help:"Enter multiple students in a spreadsheet-style table.",action:"closeSheet();showBatchAddPage()"},
+    {label:"Batch Update Students",help:"Edit multiple students from the current class at once.",action:"closeSheet();showBatchEditPage()"},
+    {label:"Add Payment",help:"Record a student's fee payment.",action:"closeSheet();startAddPayment()"}
+  ];
+  openSheet("Add",`<div>${options.map(o=>`<button type="button" class="btn choice-btn" onclick="${o.action}"><b>${o.label}</b><span>${o.help}</span></button>`).join("")}</div>`);
+}
+function startAddPayment(){
+  const students=activeStudentsForClass(state.activeClass);
+  if(!students.length){alert("There are no active students in "+state.activeClass+".");return;}
+  if(students.length===1){showPaymentFormPage(students[0].id);return;}
+  showSelectStudentPage();
+}
+
+/* ---------- Add / edit student (full page — fixes the old clipped footer) ---------- */
+function showStudentFormPage(studentId=null){
+  const s=studentId?state.students.find(x=>x.id===studentId):null;
+  const contacts=(s?.contacts?.length?s.contacts.filter(Boolean):[""]);
+  showPage(`
+    <div class="page-header">
+      <button class="btn back-btn" onclick="goBack()">‹</button>
+      <div><div class="page-title">${s?"Edit Student":"Add Student"}</div><div class="page-subtitle">${s?esc(s.name):"Enter the student's details"}</div></div>
+    </div>
+    <form onsubmit="saveStudent(event,'${studentId||""}')">
+      <section class="form-section">
+        <h2>Student Details</h2>
+        <div class="field full">
+          <label>Profile Photo</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="profile-settings-avatar ${s?.photo?"has-image":""}" id="studentPhotoPreview">${s?.photo?`<img src="${esc(s.photo)}" alt="">`:esc(initials(s?.name||"Student"))}</div>
+            <div style="flex:1">
+              <input id="studentPhotoInput" type="file" accept="image/*" style="display:none" onchange="handlePhotoInput(event,'studentPhotoPreview')">
+              <button type="button" class="btn btn-small" onclick="document.getElementById('studentPhotoInput').click()">Choose Photo</button>
+              ${s?.photo?`<button type="button" class="btn btn-small btn-danger" onclick="clearPhoto('studentPhotoPreview')">Remove</button>`:""}
+            </div>
+          </div>
+          <input type="hidden" id="studentPhotoValue" name="photo" value="${esc(s?.photo||"")}">
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label>Student Name *</label><input name="name" required value="${esc(s?.name||"")}">
+          <div class="field"><label>Father's Name</label><input name="father" value="${esc(s?.father||"")}"></div>
+          <div class="field"><label>Mother's Name</label><input name="mother" value="${esc(s?.mother||"")}"></div>
+          <div class="field full">
+            <label>Contact Numbers</label>
+            <div id="contactFields">${contacts.map((c,i)=>`<div class="add-contact-row"><input name="contact" type="tel" placeholder="Contact ${i+1}" value="${esc(c)}"><button type="button" class="btn btn-light btn-small ${i===0?'hidden':''}" onclick="this.parentElement.remove()">Remove</button></div>`).join("")}</div>
+            <button type="button" class="btn btn-light btn-small" onclick="addContactField()">+ Add one more contact</button>
+          </div>
+          <div class="field full"><label>Remarks</label><textarea name="remarks" rows="2" placeholder="Optional remarks about the student">${esc(s?.remarks||"")}</textarea></div>
+          <div class="field"><label>Class</label><select name="class">${state.classes.map(c=>`<option ${c===(s?.class||(state.activeClass==="All"?state.classes[0]:state.activeClass))?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+          <div class="field"><label>Total Fees Decided</label><input name="totalFees" type="number" min="0" step="1" value="${esc(s?.totalFees||0)}"></div>
+          <div class="field full"><label>Date Added *</label><input name="addedDate" type="date" required value="${esc(s?.addedDate||todayISO())}"></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-light" onclick="${s?`showProfilePage('${s.id}')`:"showHomePage()"}">Cancel</button>
+          <button class="btn btn-primary">Save Student</button>
+        </div>
+      </section>
+    </form>
+    ${s?`
+    <section class="form-section danger-zone">
+      <h2>Danger Zone</h2>
+      <p>Mark this student as left if they've stopped attending, or delete them entirely from your records.</p>
+      <div class="danger-actions">
+        <button type="button" class="btn btn-light" onclick="markStudentLeft('${s.id}')">${s.leftDate?"Left on "+fmtDate(s.leftDate):"Mark Student Left"}</button>
+        <button type="button" class="btn btn-danger" onclick="deleteStudent('${s.id}')">Delete Student</button>
+      </div>
+    </section>`:""}
+  `);
+}
+function markStudentLeft(studentId){
+  const s=state.students.find(x=>x.id===studentId);
+  if(!s)return;
+  if(s.leftDate){if(!confirm("Clear the left date and mark this student active again?"))return;s.leftDate="";}
+  else{if(!confirm(`Mark ${s.name} as left, effective today?`))return;s.leftDate=todayISO();}
+  save();haptic();showStudentFormPage(studentId);
+}
+function addContactField(){
+  const wrap=document.getElementById("contactFields");
+  if(!wrap)return;
+  const div=document.createElement("div");div.className="add-contact-row";
+  const n=wrap.querySelectorAll('input[name="contact"]').length+1;
+  div.innerHTML=`<input name="contact" type="tel" placeholder="Contact ${n}"><button type="button" class="btn btn-light btn-small" onclick="this.parentElement.remove()">Remove</button>`;
+  wrap.appendChild(div);div.querySelector("input").focus();
+}
+function saveStudent(e,studentId){
+  e.preventDefault();const f=new FormData(e.target);
+  const contacts=[...e.target.querySelectorAll('input[name="contact"]')].map(x=>x.value.trim()).filter(Boolean);
+  const data={name:f.get("name").trim(),father:f.get("father").trim(),mother:f.get("mother").trim(),contacts:contacts.length?contacts:[""],remarks:String(f.get("remarks")||"").trim(),class:f.get("class"),totalFees:Number(f.get("totalFees")||0),addedDate:f.get("addedDate"),photo:String(f.get("photo")||"")};
+  if(studentId){const existing=state.students.find(x=>x.id===studentId);data.leftDate=existing?.leftDate||"";}
+  if(studentId)Object.assign(state.students.find(x=>x.id===studentId),data);else state.students.push({id:id(),...data,transactions:[]});
+  state.activeClass=data.class;save();haptic();refreshCurrentView(studentId||undefined);
+}
+
+/* ---------- Batch student entry (full page) ---------- */
+function showBatchAddPage(){
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Batch Add Students</div><div class="page-subtitle">Enter several students at once</div></div></div>
+    <div class="info-box">Enter students like a spreadsheet. <b>Tab</b> moves to the next cell and <b>Enter</b> moves down in the same column. Class defaults to the current class tab; when viewing All, it defaults to the first class and can be changed per row.</div>
+    <div class="batch-table-wrap"><table class="batch-table"><thead><tr><th>#</th><th>Student Name *</th><th>Father's Name</th><th>Mother's Name</th><th>Contact</th><th>Class</th><th>Total Fees</th><th>Date Added</th><th>Remarks</th><th></th></tr></thead><tbody id="batchBody"></tbody></table></div>
+    <div class="batch-hint">You can paste tab-separated rows from another spreadsheet too. Leave optional cells blank.</div>
+    <div class="form-actions"><button type="button" class="btn btn-light" onclick="showHomePage()">Cancel</button><button class="btn btn-primary" onclick="saveBatchStudents()">Add Students</button></div>
+  `);
+  addBatchRow();
+  const first=document.querySelector('#batchBody input[data-col="name"]');if(first)first.focus();
+}
+function addBatchRow(values={}){
+  const body=document.getElementById("batchBody");if(!body)return;
+  const row=body.insertRow();const num=body.rows.length;
+  row.innerHTML=`<td class="row-num">${num}</td>
+    <td><input data-col="name" value="${esc(values.name||"")}" placeholder="Student name"></td>
+    <td><input data-col="father" value="${esc(values.father||"")}"></td>
+    <td><input data-col="mother" value="${esc(values.mother||"")}"></td>
+    <td><input data-col="contact" type="tel" value="${esc(values.contact||"")}"></td>
+    <td><select data-col="class">${state.classes.map(c=>`<option ${c===(values.class||(state.activeClass==="All"?state.classes[0]:state.activeClass))?"selected":""}>${esc(c)}</option>`).join("")}</select></td>
+    <td><input data-col="fees" type="number" min="0" step="1" value="${esc(values.fees??"")}"></td>
+    <td><input data-col="added" type="date" value="${esc(values.added||todayISO())}"></td>
+    <td><input data-col="remarks" value="${esc(values.remarks||"")}" placeholder="Remarks"></td>
+     <td><button type="button" class="btn btn-danger btn-small batch-remove" onclick="removeBatchRow(this)" aria-label="Remove row">×</button></td>`;
+  row.querySelectorAll("input,select").forEach(el=>el.addEventListener("keydown",batchKeyNav));
+}
+function batchKeyNav(e){
+  if(e.key!=="Enter")return;
+  e.preventDefault();
+  const body=document.getElementById("batchBody"), row=e.target.closest("tr"), col=e.target.dataset.col;
+  const nextRow=row.nextElementSibling;
+  if(nextRow){const target=nextRow.querySelector(`[data-col="${col}"]`);if(target){target.focus();target.select?.();return;}}
+  addBatchRow();const last=body.lastElementChild.querySelector(`[data-col="${col}"]`);if(last){last.focus();last.select?.();}
+}
+function saveBatchStudents(){
+  const rows=[...document.querySelectorAll("#batchBody tr")];let added=0;
+  for(const row of rows){
+    const get=c=>row.querySelector(`[data-col="${c}"]`)?.value?.trim()||"";
+    const name=get("name");if(!name)continue;
+    const addedDate=get("added")||todayISO();
+    state.students.push({id:id(),name,father:get("father"),mother:get("mother"),contacts:[get("contact")],remarks:get("remarks"),class:get("class")||state.activeClass,totalFees:Number(get("fees")||0),addedDate,leftDate:"",transactions:[]});
+    added++;
+  }
+  if(!added)return alert("Enter at least one student name.");
+  save();haptic();alert(added+" student"+(added===1?"":"s")+" added successfully.");
+  showHomePage();
+}
+
+function removeBatchRow(btn){
+  const body=document.getElementById("batchBody");if(!body||!btn)return;
+  if(body.rows.length===1){const row=btn.closest("tr");row.querySelectorAll("input").forEach(x=>x.value="");return;}
+  btn.closest("tr")?.remove();
+  [...body.rows].forEach((r,i)=>{const n=r.querySelector(".row-num");if(n)n.textContent=i+1;});
+}
+function batchRowData(row){
+  const get=c=>row.querySelector(`[data-col="${c}"]`)?.value?.trim()||"";
+  return {name:get("name"),father:get("father"),mother:get("mother"),contact:get("contact"),class:get("class")||state.activeClass,fees:get("fees"),added:get("added")||todayISO(),remarks:get("remarks")};
+}
+function showBatchEditPage(){
+  const students=activeStudentsForClass(state.activeClass);
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Batch Edit Students</div><div class="page-subtitle">${esc(state.activeClass)} · ${students.length} active students</div></div></div>
+    <div class="info-box">Edit any number of rows, then press <b>Save Changes</b>. Existing payments and transaction history are preserved. Leave a field unchanged if you do not want to modify it.</div>
+    ${students.length?`
+    <div class="batch-table-wrap"><table class="batch-table"><thead><tr><th>#</th><th>Student Name *</th><th>Father's Name</th><th>Mother's Name</th><th>Contact</th><th>Class</th><th>Total Fees</th><th>Date Added</th><th>Remarks</th><th></th></tr></thead><tbody id="batchEditBody">
+      ${students.map((s,i)=>`<tr data-id="${esc(s.id)}">
+        <td class="row-num">${i+1}</td>
+        <td><input data-col="name" value="${esc(s.name||"")}"></td>
+        <td><input data-col="father" value="${esc(s.father||"")}"></td>
+        <td><input data-col="mother" value="${esc(s.mother||"")}"></td>
+        <td><input data-col="contact" type="tel" value="${esc((s.contacts||[]).find(Boolean)||"")}"></td>
+        <td><select data-col="class">${state.classes.map(c=>`<option ${c===s.class?"selected":""}>${esc(c)}</option>`).join("")}</select></td>
+        <td><input data-col="fees" type="number" min="0" step="1" value="${esc(s.totalFees??0)}"></td>
+        <td><input data-col="added" type="date" value="${esc(s.addedDate||todayISO())}"></td>
+        <td><input data-col="remarks" value="${esc(s.remarks||"")}" placeholder="Remarks"></td>
+      </tr>`).join("")}
+    </tbody></table></div>
+    <div class="batch-hint">Only active students in the current class are shown. Transactions are not altered by this editor.</div>
+    <div class="form-actions"><button type="button" class="btn btn-light" onclick="showHomePage()">Cancel</button><button type="button" class="btn btn-primary" onclick="saveBatchEdits()">Save Changes</button></div>
+    `:`<div class="empty">No active students in ${esc(state.activeClass)} to edit.</div>`}
+  `);
+}
+function removeBatchEditRow(btn){btn.closest("tr")?.remove();[...document.querySelectorAll("#batchEditBody tr")].forEach((r,i)=>{const n=r.querySelector(".row-num");if(n)n.textContent=i+1;});}
+function saveBatchEdits(){
+  const rows=[...document.querySelectorAll("#batchEditBody tr")];let changed=0;
+  for(const row of rows){
+    const studentId=row.dataset.id,s=state.students.find(x=>x.id===studentId);if(!s)continue;
+    const d=batchRowData(row);if(!d.name)continue;
+    Object.assign(s,{name:d.name,father:d.father,mother:d.mother,contacts:d.contact?[d.contact]:[""],class:d.class,totalFees:Number(d.fees||0),addedDate:d.added,remarks:d.remarks});
+    changed++;
+  }
+  if(!changed)return alert("No valid student rows were found.");
+  save();haptic();alert(changed+" student"+(changed===1?"":"s")+" updated successfully.");showHomePage();
+}
+
+/* ---------- Delete student (with a clear choice page for transactions) ---------- */
+function deleteStudent(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  if(!confirm(`Delete ${s.name} from your student list?`))return;
+  const tx=[...(s.transactions||[])];
+  if(tx.length){showDeleteChoicePage(studentId);}
+  else{deleteStudentWithTransactions(studentId,true);}
+}
+function showDeleteChoicePage(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  const tx=s.transactions||[];
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Before You Delete</div><div class="page-subtitle">${esc(s.name)}</div></div></div>
+    <div class="info-box"><b>${esc(s.name)}</b> has ${tx.length} transaction${tx.length===1?"":"s"}. What should happen to them?</div>
+    <div class="select-list">
+      <button class="btn btn-primary select-item" onclick="deleteStudentWithTransactions('${s.id}',true)"><b>Delete student + transactions</b><span>Removes the student and every payment on record for them.</span></button>
+      <button class="btn select-item" onclick="deleteStudentWithTransactions('${s.id}',false)"><b>Delete student, keep transactions</b><span>Keeps a record of their payments under "Left Student Transactions".</span></button>
+      <button class="btn btn-light select-item" onclick="showStudentFormPage('${s.id}')"><b>Cancel</b><span>Go back without deleting anything.</span></button>
+    </div>
+  `);
+}
+function deleteStudentWithTransactions(studentId,deleteTransactions){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  if(!deleteTransactions){
+    state.leftStudentTransactions=state.leftStudentTransactions||[];
+    state.leftStudentTransactions.push({
+      id:id(),originalName:s.name,class:s.class,father:s.father||"",mother:s.mother||"",
+      deletedDate:todayISO(),transactions:(s.transactions||[]).map(t=>({...t}))
+    });
+  }
+  state.students=state.students.filter(x=>x.id!==studentId);
+  save();showHomePage();
+}
+
+/* ---------- Payments ---------- */
+function showPaymentFormPage(studentId,txId=null){
+  const s=state.students.find(x=>x.id===studentId),t=txId?(s.transactions||[]).find(x=>x.id===txId):null;
+  const d=String(t?.date||todayISO()).slice(0,10);
+  const backFn=`goBack()`;
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="${backFn}">‹</button><div><div class="page-title">${t?"Edit Fee Transaction":"New Fee Payment"}</div><div class="page-subtitle">${esc(s.name)}</div></div></div>
+    <div class="info-box"><b>${esc(s.name)}</b><br>Current total paid: ${money(paidFor(s))}</div>
+    <form onsubmit="saveTransaction(event,'${studentId}','${txId||""}')">
+      <section class="form-section">
+        <div class="form-grid">
+          <div class="field"><label>Payment Date</label><input name="date" type="date" required value="${esc(d)}"></div>
+          <div class="field full"><label>Amount Paid *</label><input name="amount" type="number" min="0" step="1" required value="${esc(t?.amount||"")}"></div>
+          <div class="field full"><label>Remarks</label><textarea name="remark" rows="3">${esc(t?.remark||"")}</textarea></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-light" onclick="${backFn}">Cancel</button>
+          <button class="btn btn-primary">${t?"Update Payment":"Save Payment"}</button>
+        </div>
+      </section>
+    </form>
+  `);
+}
+function saveTransaction(e,studentId,txId){
+  e.preventDefault();const f=new FormData(e.target),s=state.students.find(x=>x.id===studentId);
+  const data={month:String(f.get("date")||"").slice(0,7),date:f.get("date"),amount:Number(f.get("amount")),remark:String(f.get("remark")||"").trim()};
+  s.transactions=s.transactions||[];
+  let savedTx;
+  if(txId){savedTx=s.transactions.find(t=>t.id===txId);Object.assign(savedTx,data);}
+  else{savedTx={id:id(),...data};s.transactions.push(savedTx);}
+  save();
+  if(txId){showStudentTransactionsPage(s.id);}
+  else{showReceiptPage(s.id,savedTx.id);}
+}
+function showSelectStudentPage(){
+  const students=activeStudentsForClass(state.activeClass);
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Select Student</div><div class="page-subtitle">Choose who this payment is for</div></div></div>
+    <div class="select-list">
+      ${students.map(s=>`<button class="btn select-item" onclick="showPaymentFormPage('${s.id}')"><b>${esc(s.name)}</b><span>${esc(s.father||"Father not added")}</span></button>`).join("")}
+    </div>
+  `);
+}
+
+/* ---------- Teacher / My Profile settings page ---------- */
+function totalSessionRevenue(){
+  const start=String(state.sessionStart||"").slice(0,7);
+  const end=String(state.sessionEnd||"").slice(0,7);
+  const today=todayISO().slice(0,7);
+  const upper=end && today<end ? today : end;
+  const inSession=d=>{
+    const key=String(d||"").slice(0,7);
+    if(!key)return false;
+    return (!start || key>=start) && (!upper || key<=upper);
+  };
+  let total=0;
+  state.students.forEach(s=>(s.transactions||[]).forEach(t=>{if(inSession(t.date))total+=Number(t.amount||0);}));
+  (state.leftStudentTransactions||[]).forEach(bucket=>(bucket.transactions||[]).forEach(t=>{if(inSession(t.date))total+=Number(t.amount||0);}));
+  return total;
+}
+function showUserProfilePage(){
+  const revenue=totalSessionRevenue();
+  const photo=state.teacherPhoto||"";
+  showPage(`
+    <div class="page-header profile-page-header">
+      <div class="page-header-title"><div class="page-title">My Profile</div><div class="page-subtitle">Your account overview</div></div>
+      <div class="page-header-actions">
+        <button type="button" class="btn icon-btn help-btn" onclick="showHelpPage()" aria-label="Help and tutorial" title="Help & Tutorial">?</button>
+        <button id="themeToggle" type="button" class="btn theme-toggle" onclick="toggleTheme()" aria-label="${state.theme==="dark"?"Switch to light mode":"Switch to dark mode"}" title="${state.theme==="dark"?"Light mode":"Dark mode"}">${state.theme==="dark"?"☀":"☾"}</button>
+      </div>
+    </div>
+    <section class="profile-settings-card compact">
+      <div class="profile-settings-avatar ${photo?"has-image":""}">${photo?`<img src="${esc(photo)}" alt="">`:esc(initials(state.teacher))}</div>
+      <div style="min-width:0;flex:1">
+        <div style="font-size:20px;font-weight:900">${esc(state.teacher||"Tutor")}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${esc(state.brand||"My Tuition")}</div>
+      </div>
+      <div class="profile-head-actions">
+        <button type="button" class="btn icon-btn" onclick="showEditProfilePage()" aria-label="Edit Profile" title="Edit Profile">✎</button>
+        <button type="button" class="btn icon-btn icon-btn-danger" onclick="logoutApp()" aria-label="Log Out" title="Log Out">↪</button>
+      </div>
+    </section>
+    <section class="profile-stats">
+      <div class="profile-stat"><div class="profile-stat-value">${state.classes.length}</div><div class="profile-stat-label">Classes</div></div>
+      <div class="profile-stat"><div class="profile-stat-value stat-revenue-value">${money(revenue)}</div><div class="profile-stat-label">Revenue This Session</div></div>
+      <div class="profile-stat"><div class="profile-stat-value">${state.students.filter(s=>!s.leftDate).length}</div><div class="profile-stat-label">Active Students</div></div>
+    </section>
+    <section class="profile-section">
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-label">Academic Session</div><div class="detail-value">${esc(state.session||"—")}</div></div>
+        <div class="detail-item"><div class="detail-label">Classes Taught</div><div class="detail-value">${esc(state.classes.join(", ")||"—")}</div></div>
+      </div>
+    </section>
+    <section class="form-section">
+      <h2>Backup & Restore</h2>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Backup saves a complete copy of your app data, including students, payments, photos, classes, settings and theme, into one JSON file. Restore reads that JSON file and replaces the current app data with the backup.</p>
+      <div class="info-box" style="margin-bottom:12px"><b>How it works</b><br>Use <b>Backup Data</b> before changing devices or browsers. Keep the downloaded JSON file somewhere safe. Use <b>Restore Data</b> to bring that saved data back. Restoring replaces the data currently in this app.</div>
+      <div class="batch-controls">
+        <button type="button" class="btn btn-primary" onclick="exportDataBackup()">↑ Backup Data</button>
+        <button type="button" class="btn" onclick="document.getElementById('importFile').click()">↓ Restore Data</button>
+      </div>
+    </section>
+    <section class="form-section">
+      <h2>About the App</h2>
+      <div class="about-app">
+        <div class="about-app-title">Tuition Fee Manager</div>
+        <div class="about-app-credit">Made by Mukul Sharma · Built with the help of Claude and ChatGPT.</div>
+        <div class="about-app-social">
+          <a class="about-app-link" href="https://www.instagram.com/sciencebymukulsir/" target="_blank" rel="noopener noreferrer">@sciencebymukulsir <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+  `);
+}
+function showHelpPage(){
+  showPage(`
+    <div class="page-header">
+      <div class="page-header-title"><div class="page-title">Help & Tutorial</div><div class="page-subtitle">A quick guide to the whole application</div></div>
+    </div>
+    <section class="form-section">
+      <h2>Getting Started</h2>
+      <div class="info-box"><b>1. Set up your profile</b><br>Enter your name, tuition/institute name, academic session and the classes you teach.</div>
+      <div class="info-box"><b>2. Add students</b><br>Use <b>+</b> to add one student or use Batch Add Students to enter multiple students quickly. In Batch Add, pressing Enter on the last row creates another row.</div>
+      <div class="info-box"><b>3. Record payments</b><br>Use <b>Add Payment</b> from the main student list. Payment date, amount and optional remarks are saved to that student's record.</div>
+    </section>
+    <section class="form-section">
+      <h2>Student Records</h2>
+      <div class="info-box"><b>View Progress</b><br>Shows total fees, fees paid, balance, a fee-submission progress bar and payment history. The progress bar is for your view only.</div>
+      <div class="info-box"><b>Transactions</b><br>Open a student's transaction history to review, edit or delete existing payments. The All Transactions area also contains payments belonging to students who have left.</div>
+      <div class="info-box"><b>Mark as Left</b><br>A student marked as left disappears from the active class list, while their financial history can remain available in All Transactions.</div>
+    </section>
+    <section class="form-section">
+      <h2>Reports & Sharing</h2>
+      <div class="info-box"><b>Share Progress</b><br>Open View Progress first, then use Share Progress. The shared image is designed for sending to parents and does not include your private in-app progress bar.</div>
+      <div class="info-box"><b>All Transactions</b><br>Use the transaction search to search only payment records. You can also export transaction reports for a selected date range.</div>
+    </section>
+    <section class="form-section">
+      <h2>Backup & Restore</h2>
+      <div class="info-box"><b>Backup</b><br>Creates one JSON file containing your app data, including students, payments, profile information, classes, settings, theme and stored photos.</div>
+      <div class="info-box"><b>Restore</b><br>Select a previous Tuition Fee Manager JSON backup to replace the current app data with that saved backup. Keep backup files somewhere safe.</div>
+    </section>
+    <section class="form-section">
+      <h2>Profile & Settings</h2>
+      <div class="info-box"><b>My Profile</b><br>Shows your account overview, classes, session revenue, Backup & Restore and About the App. Use the pencil icon to edit your profile and the red exit icon to log out.</div>
+      <div class="info-box"><b>Theme</b><br>Use the sun/moon toggle to switch between dark and light mode. Your selected theme is saved with the app data.</div>
+    </section>
+  `);
+}
+function showEditProfilePage(){
+  const chosen=new Set(state.classes);
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Edit Profile</div><div class="page-subtitle">Profile, classes and app settings</div></div></div>
+    <section class="form-section">
+      <h2>Profile Details</h2>
+      <form onsubmit="saveTeacherProfile(event)">
+        <div class="field">
+          <label>Profile Photo</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="profile-settings-avatar ${state.teacherPhoto?"has-image":""}" id="teacherPhotoPreview">${state.teacherPhoto?`<img src="${esc(state.teacherPhoto)}" alt="">`:esc(initials(state.teacher))}</div>
+            <div style="flex:1">
+              <input id="teacherPhotoInput" type="file" accept="image/*" style="display:none" onchange="handlePhotoInput(event,'teacherPhotoPreview')">
+              <button type="button" class="btn btn-small" onclick="document.getElementById('teacherPhotoInput').click()">Choose Photo</button>
+              ${state.teacherPhoto?`<button type="button" class="btn btn-small btn-danger" onclick="clearPhoto('teacherPhotoPreview')">Remove</button>`:""}
+            </div>
+          </div>
+          <input type="hidden" id="teacherPhotoValue" name="teacherPhoto" value="${esc(state.teacherPhoto||"")}">
+        </div>
+        <div class="field" style="margin-top:12px"><label>Teacher Name</label><input name="teacher" required value="${esc(state.teacher)}"></div>
+        <div class="field" style="margin-top:12px"><label>Institute / Tuition Name</label><input name="brand" maxlength="60" required value="${esc(state.brand||"My Tuition")}" placeholder="e.g. Mukul's Physics Academy"></div>
+        <div class="field" style="margin-top:12px"><label>Teacher Gender</label><select name="gender" required><option value="male" ${state.gender==="male"?"selected":""}>Male</option><option value="female" ${state.gender==="female"?"selected":""}>Female</option></select></div>
+        <div class="field" style="margin-top:12px"><label>Academic Session Start</label><input name="sessionStart" type="month" required value="${esc((state.sessionStart||"").slice(0,7)||"2026-04")}"></div>
+        <div class="field" style="margin-top:12px"><label>Academic Session End</label><input name="sessionEnd" type="month" required value="${esc((state.sessionEnd||"").slice(0,7)||"2027-03")}"></div>
+        <div class="form-actions"><button class="btn btn-primary">Save Profile</button></div>
+      </form>
+    </section>
+    <section class="form-section">
+      <h2>Classes I Teach</h2>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Select the classes that should appear as tabs.</p>
+      <div id="profileClassPicker" class="settings-class-grid">${CLASS_LABELS.map((c,i)=>`<button type="button" class="settings-class ${chosen.has(c)?"selected":""}" data-profile-class="${i}" onclick="toggleProfileClass(${i})">${esc(c)}</button>`).join("")}</div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveProfileClasses()">Save Classes</button></div>
+    </section>
+    <section class="form-section danger-zone">
+      <h2>Master Reset</h2><p>Erase all students, payments, classes and app settings and start from scratch.</p>
+      <button class="btn btn-danger" type="button" onclick="openMasterReset()">Master Reset</button><div id="masterResetPanel"></div>
+    </section>
+  `);
+}
+function makeResetCode(){
+  const words=["amber","atlas","cedar","comet","delta","ember","falcon","forest","harbor","indigo","lunar","maple","orbit","pearl","quartz","river","silver","solar","stone","tiger","violet","willow"];
+  const pick=()=>words[Math.floor(Math.random()*words.length)];
+  let code=`${pick()} ${pick()} ${pick()}`;
+  while(new Set(code.split(" ")).size<3)code=`${pick()} ${pick()} ${pick()}`;
+  return code;
+}
+function openMasterReset(){
+  const panel=document.getElementById("masterResetPanel");
+  if(!panel)return;
+  const code=makeResetCode();
+  panel.innerHTML=`
+    <div class="reset-card">
+      <h2>Confirm Master Reset</h2>
+      <p>This will permanently erase the entire database. There are no confirmation dialogs. Type the exact code shown below to continue.</p>
+      <div class="reset-code" id="masterResetCode">${esc(code)}</div>
+      <input id="masterResetInput" class="reset-input" autocomplete="off" spellcheck="false" placeholder="Type the code exactly">
+      <div id="masterResetError" class="reset-error">The code does not match. Nothing has been deleted.</div>
+      <div class="form-actions">
+        <button class="btn" type="button" onclick="document.getElementById('masterResetPanel').innerHTML=''">Cancel</button>
+        <button class="btn btn-danger" type="button" onclick="executeMasterReset()">Erase Everything</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById("masterResetInput")?.focus(),40);
+}
+function executeMasterReset(){
+  const code=(document.getElementById("masterResetCode")?.textContent||"").trim();
+  const entered=(document.getElementById("masterResetInput")?.value||"").trim();
+  const err=document.getElementById("masterResetError");
+  if(entered!==code){
+    if(err)err.classList.add("show");
+    const input=document.getElementById("masterResetInput");
+    if(input){input.value="";input.focus();}
+    return;
+  }
+  localStorage.removeItem(KEY);
+  location.reload();
+}
+function toggleProfileClass(index){
+  const buttons=[...document.querySelectorAll("[data-profile-class]")];
+  const b=buttons[index]; if(!b)return;
+  b.classList.toggle("selected");
+}
+function saveTeacherProfile(e){
+  e.preventDefault();const f=new FormData(e.target);
+  const name=String(f.get("teacher")||"").trim();if(!name)return alert("Enter your name.");
+  const start=String(f.get("sessionStart")||"2026-04");
+  const end=String(f.get("sessionEnd")||"2027-03");
+  if(start>end)return alert("Academic session start cannot be after the end month.");
+  state.teacher=name;
+  state.brand=String(f.get("brand")||"").trim()||"My Tuition";
+  state.gender=String(f.get("gender")||"male");
+  state.teacherPhoto=String(f.get("teacherPhoto")||"");
+  state.sessionStart=start; state.sessionEnd=end;
+  state.session=`${monthLabel(start)} – ${monthLabel(end)}`;
+  save();
+  document.getElementById("appBrand").textContent=state.brand;
+  document.getElementById("appTutor").textContent=state.teacher;
+  showUserProfilePage();
+}
+function saveProfileClasses(){
+  const selected=[...document.querySelectorAll("[data-profile-class].selected")].map(b=>CLASS_LABELS[Number(b.dataset.profileClass)]);
+  if(!selected.length)return alert("You must keep at least one class selected.");
+  const removed=state.classes.filter(c=>!selected.includes(c));
+  const affected=state.students.filter(s=>removed.includes(s.class));
+  if(affected.length){
+    const names=affected.slice(0,8).map(s=>s.name).join(", ");
+    const extra=affected.length>8?` and ${affected.length-8} more`:"";
+    alert(
+      `You cannot unselect ${removed.join(", ")} yet.\n\n`+
+      `${affected.length} student${affected.length===1?" is":"s are"} still assigned to ${affected.length===1?"this class":"these classes"}: ${names}${extra}.\n\n`+
+      `First delete those students individually from the student list. `+
+      `After all students in the class have been deleted, you can remove the class tab.`
+    );
+    document.querySelectorAll("[data-profile-class]").forEach(b=>{
+      const c=CLASS_LABELS[Number(b.dataset.profileClass)];
+      if(removed.includes(c))b.classList.add("selected");
+    });
+    return;
+  }
+  state.classes=selected;
+  if(!state.activeClass||!selected.includes(state.activeClass))state.activeClass=selected[0];
+  save();haptic();showHomePage();
+}
+
+function showPhotoPreview(src){
+  if(!src)return;
+  const old=document.getElementById("profilePhotoPreviewOverlay");if(old)old.remove();
+  const wrap=document.createElement("div");wrap.id="profilePhotoPreviewOverlay";wrap.className="profile-photo-preview-overlay";
+  wrap.innerHTML=`<div class="profile-photo-preview" role="dialog" aria-modal="true" aria-label="Profile photo preview"><img src="${esc(src)}" alt="Profile photo"><button type="button" class="btn profile-photo-preview-close" onclick="closePhotoPreview()" aria-label="Close">×</button></div>`;
+  wrap.addEventListener("click",e=>{if(e.target===wrap)closePhotoPreview();});
+  document.body.appendChild(wrap);
+}
+function closePhotoPreview(){const el=document.getElementById("profilePhotoPreviewOverlay");if(el)el.remove();}
+
+/* ---------- Student profile page ---------- */
+function showProfilePage(studentId){
+  const s=state.students.find(x=>x.id===studentId); if(!s)return;
+  const paid=paidFor(s), balance=Math.max(0,Number(s.totalFees||0)-paid);
+  const tx=[...(s.transactions||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const call=(s.contacts||[]).find(Boolean);
+  showPage(`
+    <div class="page-header">
+      <button class="btn back-btn" onclick="goBack()">‹</button>
+      <div><div class="page-title">Student Profile</div><div class="page-subtitle">${esc(s.class)}</div></div>
+    </div>
+
+    <section class="profile-hero">
+      <div class="profile-avatar ${s.photo?"has-image":""}" ${s.photo?`onclick="showPhotoPreview(${JSON.stringify(s.photo)})" role="button" tabindex="0" aria-label="Preview profile photo"`:""}>${s.photo?`<img src="${esc(s.photo)}" alt="">`:esc(initials(s.name))}</div>
+      <div class="profile-identity">
+        <h1>${esc(s.name)}</h1>
+        <p>${esc(s.father||"Father not added")} · ${esc(s.class)}${s.leftDate?" · Left "+fmtDate(s.leftDate):""}</p>
+      </div>
+      <div class="profile-actions">
+        <button class="btn btn-primary" onclick="showPaymentFormPage('${s.id}')">Add Transaction</button>
+        <button class="btn" onclick="showProgressPage('${s.id}')">View Progress</button>
+      </div>
+    </section>
+
+    <section class="profile-stats">
+      <div class="profile-stat stat-total"><div class="profile-stat-value">${money(s.totalFees)}</div><div class="profile-stat-label">Total Fees</div></div>
+      <div class="profile-stat stat-paid"><div class="profile-stat-value">${money(paid)}</div><div class="profile-stat-label">Fees Paid</div></div>
+      <div class="profile-stat stat-balance"><div class="profile-stat-value">${money(balance)}</div><div class="profile-stat-label">Balance</div></div>
+    </section>
+
+    <section class="profile-section">
+      <div class="section-head">
+        <h2>Student Details</h2>
+        <button class="btn btn-small" onclick="showStudentFormPage('${s.id}')">Edit Profile</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-label">Father</div><div class="detail-value">${esc(s.father||"—")}</div></div>
+        <div class="detail-item"><div class="detail-label">Mother</div><div class="detail-value">${esc(s.mother||"—")}</div></div>
+        <div class="detail-item"><div class="detail-label">Date Added</div><div class="detail-value">${fmtDate(s.addedDate)}</div></div>
+        <div class="detail-item full"><div class="detail-label">Remarks</div><div class="detail-value">${esc(s.remarks||"—")}</div></div>
+        ${(s.contacts||[]).map((c,i)=>`<div class="detail-item"><div class="detail-label">Contact ${i+1}</div><div class="detail-value">${c?`<a href="tel:${esc(c.replace(/[^0-9+]/g,""))}">${esc(c)}</a>`:"—"}</div></div>`).join("")}
+      </div>
+    </section>
+`);
+}
+function showProgressPage(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  const tx=progressRowsForStudent(s).reverse(),paid=paidFor(s),total=Number(s.totalFees||0),balance=Math.max(0,total-paid);
+  const progressPercent=total>0?Math.min(100,Math.max(0,(paid/total)*100)):0;
+  showPage(`
+    <div class="page-header">
+      <button class="btn back-btn" onclick="goBack()">‹</button>
+      <div><div class="page-title">Fee Progress</div><div class="page-subtitle">${esc(s.name)}</div></div>
+    </div>
+    <section class="profile-stats">
+      <div class="profile-stat stat-total"><div class="profile-stat-value">${money(total)}</div><div class="profile-stat-label">Total Fees</div></div>
+      <div class="profile-stat stat-paid"><div class="profile-stat-value">${money(paid)}</div><div class="profile-stat-label">Fees Paid</div></div>
+      <div class="profile-stat stat-balance"><div class="profile-stat-value">${money(balance)}</div><div class="profile-stat-label">Balance</div></div>
+    </section>
+    <section class="progress-card">
+      <div class="progress-card-head"><div class="progress-card-title">Fee submission progress</div><div class="progress-card-percent">${progressPercent.toFixed(0)}%</div></div>
+      <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressPercent.toFixed(0)}" aria-label="Fees submitted"><div class="progress-fill" style="width:${progressPercent.toFixed(2)}%"></div></div>
+      <div class="progress-card-meta"><span>${money(paid)} submitted</span><span>${money(balance)} remaining</span></div>
+    </section>
+    <section class="profile-section">
+      <div class="section-head"><div><h2>Payment History</h2><div class="section-subtitle">${tx.length} payment${tx.length===1?"":"s"} recorded</div></div></div>
+      <div class="tx-list">${tx.length?tx.map(t=>transactionRowHTML(s,t,true)).join(""):`<div class="empty">No payments recorded yet.</div>`}</div>
+    </section>
+    <div class="form-actions progress-share-actions">
+      <button class="btn btn-primary" onclick="shareProgress('${s.id}')">Share Progress</button>
+    </div>
+  `);
+}
+function transactionRowHTML(s,t,withActions=true){
+  return `<div class="upi-tx">
+    <div class="tx-icon">₹</div>
+    <div class="upi-main"><div class="upi-name">${esc(s.name)}</div><div class="upi-meta">${fmtDate(String(t.date||"").slice(0,10))}${t.remark?" · "+esc(t.remark):""}</div></div>
+    ${withActions?`<div class="upi-actions"><div class="upi-amount">+${money(t.amount)}</div><button class="btn btn-small" onclick="showPaymentFormPage('${s.id}','${t.id}')">Edit</button><button class="btn btn-danger btn-small" onclick="deleteStudentTransactionFromPage('${s.id}','${t.id}')">Delete</button></div>`
+      :`<div class="upi-amount">+${money(t.amount)}</div>`}
+  </div>`;
+}
+function showStudentTransactionsPage(studentId){
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  const tx=[...(s.transactions||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  showPage(`<div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Transactions</div><div class="page-subtitle">${esc(s.name)} · ${tx.length} payments</div></div></div>
+    <div class="profile-stats"><div class="profile-stat stat-total"><div class="profile-stat-value">${money(s.totalFees)}</div><div class="profile-stat-label">Total Fees</div></div><div class="profile-stat stat-paid"><div class="profile-stat-value">${money(paidFor(s))}</div><div class="profile-stat-label">Fees Paid</div></div><div class="profile-stat stat-balance"><div class="profile-stat-value">${money(Math.max(0,s.totalFees-paidFor(s)))}</div><div class="profile-stat-label">Balance</div></div></div>
+    <div class="tx-list">${tx.length?tx.map(t=>transactionRowHTML(s,t,true)).join(""):`<div class="empty">No transactions.</div>`}</div>`);
+}
+function deleteStudentTransactionFromPage(studentId,txId){
+  if(!confirm("Delete this transaction? It will also be removed from the student's records."))return;
+  const s=state.students.find(x=>x.id===studentId);if(!s)return;
+  s.transactions=(s.transactions||[]).filter(t=>t.id!==txId);save();showStudentTransactionsPage(studentId);
+}
+
+/* ---------- All transactions (including retained left-student payments) ---------- */
+function transactionOwnerRows(){
+  const rows=[];
+  state.students.forEach(s=>(s.transactions||[]).forEach(t=>rows.push({kind:"student",s,t})));
+  (state.leftStudentTransactions||[]).forEach(bucket=>(bucket.transactions||[]).forEach(t=>rows.push({kind:"left",s:bucket,t})));
+  return rows;
+}
+function showAllTransactionsPage(){
+  const tx=transactionOwnerRows().sort((a,b)=>new Date(b.t.date)-new Date(a.t.date));
+  const total=tx.reduce((a,x)=>a+Number(x.t.amount||0),0);
+  const firstDate=tx.length?String(tx[tx.length-1].t.date||"").slice(0,10):todayISO();
+  const lastDate=tx.length?String(tx[0].t.date||"").slice(0,10):todayISO();
+  showPage(`<div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">All Transactions</div><div class="page-subtitle">${tx.length} payments · ${money(total)} received</div></div></div>
+    <div class="profile-stats"><div class="profile-stat stat-paid"><div class="profile-stat-value">${money(total)}</div><div class="profile-stat-label">Total Received</div></div><div class="profile-stat"><div class="profile-stat-value">${tx.length}</div><div class="profile-stat-label">Transactions</div></div><div class="profile-stat"><div class="profile-stat-value">${state.students.filter(s=>!s.leftDate).length}</div><div class="profile-stat-label">Active Students</div></div></div>
+    <div class="field" style="margin:0 0 14px"><label for="allTxSearch">Search transactions</label><input id="allTxSearch" type="search" autocomplete="off" placeholder="Search student, class, date, amount, remarks…" oninput="filterAllTransactions()"></div>
+    <section class="report-export-card">
+      <div class="report-export-title">Export transactions</div>
+      <div class="report-export-grid">
+        <label>From<input id="txReportFrom" type="date" value="${firstDate}"></label>
+        <label>To<input id="txReportTo" type="date" value="${lastDate}"></label>
+      </div>
+      <button class="btn btn-primary btn-block" type="button" onclick="exportTransactionReportByRange()">Export PDF</button>
+    </section>
+    <div id="allTxList" class="tx-list">${tx.length?tx.map(x=>allTransactionHTML(x)).join(""):`<div class="empty">No transactions recorded.</div>`}</div>`);
+}
+function filterAllTransactions(){
+  const q=(document.getElementById("allTxSearch")?.value||"").trim().toLowerCase();
+  const rows=transactionOwnerRows().sort((a,b)=>new Date(b.t.date)-new Date(a.t.date));
+  const filtered=!q?rows:rows.filter(x=>{
+    const s=x.s||{},t=x.t||{};
+    const name=x.kind==="left"?(s.originalName||""):(s.name||"");
+    const hay=[name,s.class,s.father,s.mother,t.date,t.amount,t.remark,x.kind==="left"?"left student":"student"].join(" ").toLowerCase();
+    return hay.includes(q);
+  });
+  const list=document.getElementById("allTxList");
+  if(list)list.innerHTML=filtered.length?filtered.map(x=>allTransactionHTML(x)).join(""):`<div class="empty">No matching transactions.</div>`;
+}
+function allTransactionHTML(x){
+  const name=x.kind==="left"?`Left Student Transactions · ${x.s.originalName}`:(x.s.leftDate?`Left Student · ${x.s.name}`:x.s.name);
+  return `<div class="upi-tx">
+    <div class="tx-icon">₹</div>
+    <div class="upi-main"><div class="upi-name">${esc(name)}</div><div class="upi-meta">${esc(x.s.class||"")}${x.s.leftDate&&x.kind==="student"?" · Left "+fmtDate(x.s.leftDate):""} · ${fmtDate(String(x.t.date||"").slice(0,10))}${x.t.remark?" · "+esc(x.t.remark):""}</div></div>
+    <div class="upi-actions"><div class="upi-amount">+${money(x.t.amount)}</div>
+      <button class="btn btn-small" onclick="editAnyTransaction('${x.kind}','${x.s.id}','${x.t.id}')">Edit</button>
+      <button class="btn btn-danger btn-small" onclick="deleteAnyTransaction('${x.kind}','${x.s.id}','${x.t.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+function editAnyTransaction(kind,ownerId,txId){
+  if(kind==="student")showPaymentFormPage(ownerId,txId);
+  else showEditRetainedTransactionPage(ownerId,txId);
+}
+function showEditRetainedTransactionPage(bucketId,txId){
+  const bucket=(state.leftStudentTransactions||[]).find(x=>x.id===bucketId),t=bucket?.transactions.find(x=>x.id===txId);
+  if(!bucket||!t)return;
+  const d=String(t.date||todayISO()).slice(0,10);
+  showPage(`
+    <div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Edit Retained Transaction</div><div class="page-subtitle">${esc(bucket.originalName)} · ${esc(bucket.class||"")}</div></div></div>
+    <div class="info-box"><b>Left Student Transactions</b><br>${esc(bucket.originalName)} · ${esc(bucket.class||"")}</div>
+    <form onsubmit="saveLeftStudentTransaction(event,'${bucketId}','${txId}')">
+      <section class="form-section">
+        <div class="form-grid">
+          <div class="field"><label>Payment Date</label><input name="date" type="date" required value="${esc(d)}"></div>
+          <div class="field full"><label>Amount Paid</label><input name="amount" type="number" min="0" step="1" required value="${esc(t.amount)}"></div>
+          <div class="field full"><label>Remarks</label><textarea name="remark" rows="3">${esc(t.remark||"")}</textarea></div>
+        </div>
+        <div class="form-actions"><button type="button" class="btn btn-light" onclick="showAllTransactionsPage()">Cancel</button><button class="btn btn-primary">Update</button></div>
+      </section>
+    </form>
+  `);
+}
+function saveLeftStudentTransaction(e,bucketId,txId){
+  e.preventDefault();const f=new FormData(e.target),b=(state.leftStudentTransactions||[]).find(x=>x.id===bucketId),t=b?.transactions.find(x=>x.id===txId);
+  if(!t)return;
+  const date=f.get("date");
+  Object.assign(t,{date,month:String(date||"").slice(0,7),amount:Number(f.get("amount")),remark:String(f.get("remark")||"").trim()});
+  save();showAllTransactionsPage();
+}
+function deleteAnyTransaction(kind,ownerId,txId){
+  if(!confirm("Delete this transaction? It will also disappear from the student's transaction history."))return;
+  if(kind==="student"){
+    const s=state.students.find(x=>x.id===ownerId);if(!s)return;
+    s.transactions=(s.transactions||[]).filter(t=>t.id!==txId);
+  }else{
+    const b=(state.leftStudentTransactions||[]).find(x=>x.id===ownerId);if(!b)return;
+    b.transactions=(b.transactions||[]).filter(t=>t.id!==txId);
+    state.leftStudentTransactions=(state.leftStudentTransactions||[]).filter(x=>x.transactions.length);
+  }
+  save();showAllTransactionsPage();
+}
+
+/* ---------- Receipt ---------- */
+function receiptData(studentId,txId){
+  const s=state.students.find(x=>x.id===studentId),t=(s?.transactions||[]).find(x=>x.id===txId);
+  return {s,t};
+}
+function showReceiptPage(studentId,txId){
+  const {s,t}=receiptData(studentId,txId);if(!s||!t)return;
+  const paid=paidFor(s),balance=Math.max(0,s.totalFees-paid);
+  showPage(`<div class="page-header"><button class="btn back-btn" onclick="goBack()">‹</button><div><div class="page-title">Payment Receipt</div><div class="page-subtitle">Payment saved successfully</div></div></div>
+    <div id="receiptCard" class="receipt">
+      <h2>Tuition Fee Receipt</h2><div class="receipt-muted">Teacher: ${esc(state.teacher)}</div>
+      <div style="margin-top:16px"><b>Student:</b> ${esc(s.name)}<br><b>Joined:</b> ${fmtDate(s.addedDate)}<br><b>Class:</b> ${esc(s.class)}</div>
+      <div style="margin-top:15px"><div class="receipt-line"><span>Payment date</span><b>${fmtDate(String(t.date||"").slice(0,10))}</b></div><div class="receipt-line"><span>This payment</span><b>${money(t.amount)}</b></div><div class="receipt-line"><span>Total fees</span><b>${money(s.totalFees)}</b></div><div class="receipt-line"><span>Total paid</span><b>${money(paid)}</b></div><div class="receipt-line receipt-total"><span>Balance remaining</span><b>${money(balance)}</b></div></div>
+      ${t.remark?`<div style="margin-top:13px;font-size:12px;color:#666">Remark: ${esc(t.remark)}</div>`:""}
+    </div>
+    <div class="receipt-actions"><button class="btn btn-primary" onclick="shareReceipt('${s.id}','${t.id}')">Share Receipt</button><button class="btn" onclick="downloadReceiptImage('${s.id}','${t.id}')">Save Receipt</button><button class="btn" onclick="showProfilePage('${s.id}')">Done</button></div>`);
+}
+async function receiptCanvas(studentId,txId){
+  const {s,t}=receiptData(studentId,txId);if(!s||!t)return null;
+  const c=document.createElement("canvas"),ctx=c.getContext("2d");
+  c.width=900;c.height=1100;ctx.fillStyle="#ffffff";ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle="#111111";ctx.font="bold 42px Arial";ctx.fillText("Tuition Fee Receipt",55,75);
+  ctx.font="24px Arial";ctx.fillStyle="#555";ctx.fillText("Teacher: "+state.teacher,55,115);
+  let y=180;ctx.fillStyle="#111";ctx.font="bold 28px Arial";ctx.fillText("Student: "+s.name,55,y);y+=42;ctx.font="23px Arial";ctx.fillText("Class: "+s.class,55,y);y+=35;ctx.fillText("Joined: "+fmtDate(s.addedDate),55,y);y+=65;
+  const rows=[["Payment date",fmtDate(String(t.date||"").slice(0,10))],["This payment",money(t.amount)],["Total fees",money(s.totalFees)],["Total paid",money(paidFor(s))],["Balance remaining",money(Math.max(0,s.totalFees-paidFor(s)))]];
+  rows.forEach(([a,b])=>{ctx.strokeStyle="#dddddd";ctx.beginPath();ctx.moveTo(55,y+12);ctx.lineTo(845,y+12);ctx.stroke();ctx.fillStyle="#555";ctx.font="22px Arial";ctx.fillText(a,55,y);ctx.fillStyle="#111";ctx.font="bold 22px Arial";ctx.fillText(b,845-ctx.measureText(b).width,y);y+=62;});
+  if(t.remark){ctx.fillStyle="#666";ctx.font="20px Arial";ctx.fillText("Remark: "+t.remark,55,y+20);}
+  return await new Promise(res=>c.toBlob(res,"image/png"));
+}
+async function shareReceipt(studentId,txId){
+  const blob=await receiptCanvas(studentId,txId);if(!blob)return;
+  const {s}=receiptData(studentId,txId),file=new File([blob],`receipt-${s.name.replace(/[^a-z0-9]+/gi,"-")}.png`,{type:"image/png"});
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{await navigator.share({title:"Tuition Fee Receipt",text:`Payment receipt for ${s.name}`,files:[file]});haptic();return;}catch(e){}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=file.name;a.click();URL.revokeObjectURL(url);
+  alert("Your browser does not support direct file sharing here, so the receipt image was saved instead.");
+}
+async function downloadReceiptImage(studentId,txId){
+  const blob=await receiptCanvas(studentId,txId);if(!blob)return;
+  const {s}=receiptData(studentId,txId),a=document.createElement("a");const url=URL.createObjectURL(blob);
+  a.href=url;a.download=`receipt-${s.name.replace(/[^a-z0-9]+/gi,"-")}.png`;a.click();URL.revokeObjectURL(url);
+}
+
+/* ---------- PDF export ---------- */
+function buildPDF(docTitle,subtitle,headers,body){
+  if(!window.jspdf)return null;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
+  const rows=[headers,...body];
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12);
+  doc.text(String(docTitle||"Report"),24,24);
+  if(subtitle){
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    doc.text(String(subtitle),24,38);
+  }
+  doc.autoTable({
+    startY:subtitle?52:40,
+    head:[],
+    body:rows,
+    theme:"grid",
+    styles:{font:"helvetica",fontSize:8,fontStyle:"normal",textColor:[0,0,0],fillColor:false,lineColor:[0,0,0],lineWidth:.25,cellPadding:4},
+    tableLineColor:[0,0,0],
+    tableLineWidth:.25
+  });
+  return doc;
+}
+function exportTransactionReportByRange(){
+  const from=document.getElementById("txReportFrom")?.value||"";
+  const to=document.getElementById("txReportTo")?.value||"";
+  if(!from||!to)return alert("Choose both dates.");
+  if(from>to)return alert("The start date cannot be after the end date.");
+  const tx=transactionOwnerRows().filter(x=>{
+    const d=String(x.t.date||"").slice(0,10);
+    return d>=from&&d<=to;
+  }).sort((a,b)=>new Date(a.t.date)-new Date(b.t.date));
+  if(!tx.length)return alert("No transactions found in this date range.");
+  const total=tx.reduce((a,x)=>a+Number(x.t.amount||0),0);
+  const rows=tx.map(x=>[
+    fmtDate(String(x.t.date||"").slice(0,10)),
+    x.s.class||"",
+    x.kind==="left"?`Left Student Transactions · ${x.s.originalName||x.s.name}`:x.s.name,
+    x.s.father||"—",
+    "Rs. "+Number(x.t.amount||0).toLocaleString("en-IN"),
+    x.t.remark||""
+  ]);
+  const doc=buildPDF("Tuition Transactions",`${fmtDate(from)} to ${fmtDate(to)} · ${tx.length} payments · Rs. ${total.toLocaleString("en-IN")} received`,
+    ["Date","Class","Student","Father","Amount","Remarks"],rows);
+  if(!doc)return alert("PDF library could not load. Check your internet connection and try again.");
+  doc.save(`transactions-${from}-to-${to}.pdf`);
+}
+
+/* ---------- Backup / Restore ---------- */
+function exportDataBackup(){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,"0");
+  const date=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const time=`${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+  const institute=String(state.brand||"Tuition Fee Manager").trim().replace(/[^a-zA-Z0-9 _-]/g,"").replace(/\s+/g,"-").replace(/-+/g,"-")||"Tuition-Fee-Manager";
+  const filename=`${institute}-${date}-${time}.json`;
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;const reader=new FileReader();
+  reader.onload=()=>{try{
+    const data=JSON.parse(reader.result);
+    if(!data||typeof data!=="object")throw 0;
+    if(!Array.isArray(data.students)||!Array.isArray(data.classes))throw 0;
+    const firstLaunch=!state.setupDone && !state.students.length && !state.classes.length;
+    if(!firstLaunch && !confirm("Import this backup? Current app data will be replaced.")){e.target.value="";return;}
+    state=data;
+    normalizeState();
+    state.loggedOut=false;
+    save();
+    init();
+  }catch(err){alert("Invalid backup file. Make sure you selected a Tuition Fee Manager backup JSON.");}
+  e.target.value="";};
+  reader.readAsText(file);
+}
+
+init();
+
+/* ---------- gentle pull/scroll bounce on Home ---------- */
+(function setupScrollBounce(){
+  const home=document.getElementById("homeView");
+  if(!home || home.dataset.bounceReady==="1")return;
+  home.dataset.bounceReady="1";
+  let startY=0, pulling=false;
+  home.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1)return;
+    startY=e.touches[0].clientY;pulling=false;home.classList.remove("scroll-bounce");
+  },{passive:true});
+  home.addEventListener("touchmove",e=>{
+    if(e.touches.length!==1)return;
+    const y=e.touches[0].clientY,dy=y-startY;
+    const atTop=window.scrollY<=0;
+    const atBottom=window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-2;
+    if((atTop && dy>0)||(atBottom && dy<0)){
+      pulling=true;
+      const amount=Math.sign(dy)*Math.min(16,Math.pow(Math.abs(dy),0.72));
+      home.style.transform=`translate3d(0,${amount}px,0)`;
+    }
+  },{passive:true});
+  home.addEventListener("touchend",()=>{
+    if(!pulling)return;
+    home.classList.add("scroll-bounce");home.style.transform="translate3d(0,0,0)";pulling=false;
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
